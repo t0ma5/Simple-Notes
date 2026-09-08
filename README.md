@@ -8,9 +8,14 @@ This is an independent fork of Simple Notes Pro 6.17.4. It is not affiliated wit
 
 APKs are published on [GitHub Releases](https://github.com/t0ma5/Simple-Notes/releases). Push a tag `vX.Y.Z` to attach a signed arm64 APK to a release. Every push, pull request, and manual **Build APK** run also uploads the APK as a workflow artifact.
 
+applicationId and Kotlin packages are `tomato.simple.notes`, so it can sit next to Play Store Simple Notes Pro.
+
 ## New features ahead of upstream 6.17.0
 
 - Notebooks: create, rename, delete, pin, reorder, and password-protect collections of notes.
+- Search notes and notebooks from the notebooks screen.
+- Pin individual notes.
+- Recycle bin for deleted notes and notebooks.
 - Counter notes with colored increment/decrement buttons.
 - Move checklist items or whole notes between notebooks.
 - Optional encrypted exports.

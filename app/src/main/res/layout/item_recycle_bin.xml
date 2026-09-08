@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/activity_margin">
+
+    <com.simplemobiletools.commons.views.MyTextView
+        android:id="@+id/recycle_bin_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@+id/recycle_bin_restore"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="@dimen/big_text_size"
+        android:textStyle="bold"
+        tools:text="Shopping list" />
+
+    <com.simplemobiletools.commons.views.MyTextView
+        android:id="@+id/recycle_bin_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/recycle_bin_title"
+        android:layout_toStartOf="@+id/recycle_bin_restore"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="@dimen/normal_text_size"
+        tools:text="Notebook" />
+
+    <com.simplemobiletools.commons.views.MyTextView
+        android:id="@+id/recycle_bin_restore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:padding="@dimen/small_margin"
+        android:text="@string/restore" />
+
+    <com.simplemobiletools.commons.views.MyTextView
+        android:id="@+id/recycle_bin_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/recycle_bin_restore"
+        android:layout_alignParentEnd="true"
+        android:padding="@dimen/small_margin"
+        android:text="@string/delete_permanently" />
+
+</RelativeLayout>

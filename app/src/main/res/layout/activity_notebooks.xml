@@ -14,13 +14,35 @@
         app:title="@string/notebooks"
         app:titleTextAppearance="@style/AppTheme.ActionBar.TitleTextStyle" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/notebooks_list"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
-        android:clipToPadding="false"
-        android:padding="@dimen/medium_margin" />
+        android:orientation="vertical">
+
+        <com.simplemobiletools.commons.views.MyEditText
+            android:id="@+id/notebooks_search"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/search_notes_hint"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:padding="@dimen/activity_margin"
+            android:visibility="gone" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/search_results_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/notebooks_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="@dimen/medium_margin" />
+    </LinearLayout>
 
     <com.simplemobiletools.commons.views.MyFloatingActionButton
         android:id="@+id/new_notebook_fab"
