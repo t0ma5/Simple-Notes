@@ -167,7 +167,7 @@ class MainActivity : SimpleActivity() {
 
         checkShortcuts()
 
-        binding.searchWrapper.setBackgroundColor(getProperStatusBarColor())
+        binding.searchWrapper.root.setBackgroundColor(getProperStatusBarColor())
         val contrastColor = getProperPrimaryColor().getContrastColor()
         arrayListOf(searchPrevBtn, searchNextBtn, searchClearBtn).forEach {
             it.applyColorFilter(contrastColor)
@@ -649,7 +649,7 @@ class MainActivity : SimpleActivity() {
 
     private fun openSearch() {
         isSearchActive = true
-        binding.searchWrapper.fadeIn()
+        binding.searchWrapper.root.fadeIn()
         showKeyboard(searchQueryET)
 
         currentNotesView()?.let { noteView ->
@@ -665,7 +665,7 @@ class MainActivity : SimpleActivity() {
     private fun closeSearch() {
         searchQueryET.text?.clear()
         isSearchActive = false
-        binding.searchWrapper.fadeOut()
+        binding.searchWrapper.root.fadeOut()
         hideKeyboard()
     }
 
