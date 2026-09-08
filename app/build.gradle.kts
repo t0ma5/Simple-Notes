@@ -71,7 +71,7 @@ android {
         abi {
             isEnable = true
             reset()
-            include("armeabi-v7a", "arm64-v8a")
+            include("arm64-v8a")
             isUniversalApk = false
         }
     }
@@ -107,7 +107,7 @@ android {
 
 configurations.configureEach {
     resolutionStrategy {
-        force("com.github.duolingo:rtl-viewpager:2.0.0")
+        force("com.github.naveensingh:rtl-viewpager:2.0.2")
     }
 }
 

@@ -14,3 +14,12 @@ dependencyResolutionManagement {
     }
 }
 include(":app")
+
+val simpleCommonsDir = rootDir.resolve("Simple-Commons")
+if (simpleCommonsDir.exists()) {
+    includeBuild("Simple-Commons") {
+        dependencySubstitution {
+            substitute(module("com.github.SimpleMobileTools:Simple-Commons")).using(project(":commons"))
+        }
+    }
+}
