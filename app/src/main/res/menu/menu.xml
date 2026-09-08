@@ -37,6 +37,14 @@
         android:title="@string/rename_note"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/pin_note"
+        android:title="@string/pin_note"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/unpin_note"
+        android:title="@string/unpin_note"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/remove_done_items"
         android:title="@string/remove_done_items"
         app:showAsAction="never" />

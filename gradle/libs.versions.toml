@@ -20,9 +20,9 @@ app-build-minimumSDK = "23"
 app-build-javaVersion = "VERSION_17"
 app-build-kotlinJVMTarget = "17"
 #versioning
-app-version-appId = "com.simplemobiletools.notes.pro"
-app-version-versionCode = "119"
-app-version-versionName = "6.17.5"
+app-version-appId = "tomato.simple.notes"
+app-version-versionCode = "120"
+app-version-versionName = "6.17.6"
 [libraries]
 #AndroidX
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidx-constraintlayout" }

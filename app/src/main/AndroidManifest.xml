@@ -62,6 +62,13 @@
             android:launchMode="singleTask" />
 
         <activity
+            android:name=".activities.RecycleBinActivity"
+            android:configChanges="orientation"
+            android:exported="false"
+            android:label="@string/recycle_bin"
+            android:parentActivityName=".activities.NotebooksActivity" />
+
+        <activity
             android:name=".activities.WidgetConfigureActivity"
             android:exported="true"
             android:screenOrientation="portrait"
