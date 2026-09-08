@@ -20,13 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Checkout Simple-Commons
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: SimpleMobileTools/Simple-Commons
-          ref: eceb48949e
+          ref: eceb48949ecca6fa86efd8e9225029da268458a9
           path: Simple-Commons
           persist-credentials: false
 
@@ -100,8 +100,6 @@ jobs:
             app/build/outputs/apk/core/release/*/*.apk
           generate_release_notes: true
           body: |
-            Release-signed arm64-v8a APK (assembleCoreRelease).
-
             Release-signed arm64-v8a APK for applicationId tomato.simple.notes.
             It can sit next to Play Store Simple Notes Pro.
         env:
