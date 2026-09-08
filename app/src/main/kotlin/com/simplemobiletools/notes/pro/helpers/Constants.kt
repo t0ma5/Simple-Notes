@@ -18,7 +18,7 @@ const val SHORTCUT_NEW_TEXT_NOTE = "shortcut_new_text_note"
 const val SHORTCUT_NEW_CHECKLIST = "shortcut_new_checklist"
 const val NEW_TEXT_NOTE = "new_text_note"
 const val NEW_CHECKLIST = "new_checklist"
-val DEFAULT_WIDGET_TEXT_COLOR = Color.parseColor("#FFF57C00")
+val DEFAULT_WIDGET_TEXT_COLOR = Color.parseColor("#FFD32F2F")
 
 // shared preferences
 const val CURRENT_NOTE_ID = "current_note_id"
