@@ -9,6 +9,11 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/filter_by_tag"
+        android:title="@string/filter_by_tag"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/recycle_bin"
         android:title="@string/recycle_bin"
         app:showAsAction="never" />

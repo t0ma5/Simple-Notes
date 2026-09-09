@@ -18,7 +18,7 @@ import tomato.simple.notes.models.NoteType
 import tomato.simple.notes.models.Widget
 import java.util.concurrent.Executors
 
-@Database(entities = [Note::class, Notebook::class, Widget::class], version = 7, exportSchema = true)
+@Database(entities = [Note::class, Notebook::class, Widget::class], version = 8, exportSchema = true)
 abstract class NotesDatabase : RoomDatabase() {
 
     abstract fun NotebooksDao(): NotebooksDao
@@ -49,6 +49,7 @@ abstract class NotesDatabase : RoomDatabase() {
                             .addMigrations(MIGRATION_4_5)
                             .addMigrations(MIGRATION_5_6)
                             .addMigrations(MIGRATION_6_7)
+                            .addMigrations(MIGRATION_7_8)
                             .build()
                         db!!.openHelper.setWriteAheadLoggingEnabled(true)
                     }
@@ -71,8 +72,8 @@ abstract class NotesDatabase : RoomDatabase() {
                 val generalNote = context.resources.getString(R.string.general_note)
                 db!!.openHelper.writableDatabase.execSQL(
                     """
-                    INSERT INTO notes (notebook_id, title, value, type, path, protection_type, protection_hash, pinned, deleted_ts)
-                    SELECT 1, ?, '', ?, '', $PROTECTION_NONE, '', 0, 0
+                    INSERT INTO notes (notebook_id, title, value, type, path, protection_type, protection_hash, pinned, deleted_ts, tags)
+                    SELECT 1, ?, '', ?, '', $PROTECTION_NONE, '', 0, 0, ''
                     WHERE NOT EXISTS (SELECT 1 FROM notes WHERE notebook_id = 1 AND deleted_ts = 0)
                     """.trimIndent(),
                     arrayOf(generalNote, NoteType.TYPE_TEXT.value)
@@ -139,6 +140,17 @@ abstract class NotesDatabase : RoomDatabase() {
                 }
                 if (!tableHasColumn(database, tableName = "notebooks", columnName = "deleted_ts")) {
                     database.execSQL("ALTER TABLE notebooks ADD COLUMN deleted_ts INTEGER NOT NULL DEFAULT 0")
+                }
+            }
+        }
+
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                if (!tableHasColumn(database, tableName = "notes", columnName = "tags")) {
+                    database.execSQL("ALTER TABLE notes ADD COLUMN tags TEXT NOT NULL DEFAULT ''")
+                }
+                if (!tableHasColumn(database, tableName = "widgets", columnName = "notebook_id")) {
+                    database.execSQL("ALTER TABLE widgets ADD COLUMN notebook_id INTEGER NOT NULL DEFAULT 0")
                 }
             }
         }

@@ -33,6 +33,7 @@ class RecycleBinHelper(private val context: android.content.Context) {
                 notes.forEach { note ->
                     note.id?.let { context.widgetsDB.deleteNoteWidgets(it) }
                 }
+                context.widgetsDB.deleteNotebookWidgets(notebookId)
                 context.notesDB.markNotesDeletedInNotebook(notebookId, now)
                 context.notebooksDB.updateDeletedTs(notebookId, now)
             } else {
@@ -40,6 +41,7 @@ class RecycleBinHelper(private val context: android.content.Context) {
                     note.id?.let { context.widgetsDB.deleteNoteWidgets(it) }
                     context.notesDB.deleteNote(note)
                 }
+                context.widgetsDB.deleteNotebookWidgets(notebookId)
                 context.notebooksDB.deleteNotebook(notebook)
             }
             callback?.let { android.os.Handler(android.os.Looper.getMainLooper()).post(it) }

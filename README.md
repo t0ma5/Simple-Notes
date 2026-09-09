@@ -16,10 +16,17 @@ applicationId and Kotlin packages are `tomato.simple.notes`, so it can sit next 
 - Search notes and notebooks from the notebooks screen.
 - Pin individual notes.
 - Recycle bin for deleted notes and notebooks.
+- Markdown preview for text notes.
+- Tags on notes, searchable from the notebooks screen.
+- Home-screen notebook widget.
+- Undo and redo for text, checklist, and counter edits.
 - Counter notes with colored increment/decrement buttons.
 - Move checklist items or whole notes between notebooks.
 - Optional encrypted exports.
 - No donation, rate, or “what's new” popups.
+- No fake-version dialogs; sideload “corrupt app” check disabled.
+- About is GitHub-only (`https://github.com/t0ma5/Simple-Notes`); Support, Help us, and “Made with ❤️ in Slovakia” are gone.
+- Remaining Commons simplemobiletools.com / hello@… strings are scrubbed at build time.
 - Default theme and launcher icon are red; orange remains an App icon color in Settings.
 
 Contains no ads or unnecessary permissions. It is fully open source and provides customizable colors. The lack of internet access gives you more privacy than typical note apps.

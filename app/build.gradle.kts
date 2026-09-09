@@ -116,6 +116,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.documentfile)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.markwon.core)
 
     implementation(libs.bundles.room)
     ksp(libs.androidx.room.compiler)

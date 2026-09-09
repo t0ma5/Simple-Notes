@@ -58,6 +58,21 @@
 
     </ScrollView>
 
+    <ScrollView
+        android:id="@+id/notes_markdown_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:visibility="gone">
+
+        <com.simplemobiletools.commons.views.MyTextView
+            android:id="@+id/notes_markdown_preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/activity_margin"
+            android:textIsSelectable="true" />
+    </ScrollView>
+
     <com.simplemobiletools.commons.views.MyTextView
         android:id="@+id/notes_counter"
         android:layout_width="wrap_content"

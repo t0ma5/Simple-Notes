@@ -76,9 +76,9 @@ class NotesPagerAdapter(fm: FragmentManager, val notes: List<Note>, val activity
 
     fun getNoteCounterItems(position: Int) = (fragments[position] as? CounterFragment)?.getCounterItems()
 
-    fun undo(position: Int) = (fragments[position] as? TextFragment)?.undo()
+    fun undo(position: Int) = getFragment(position)?.undo()
 
-    fun redo(position: Int) = (fragments[position] as? TextFragment)?.redo()
+    fun redo(position: Int) = getFragment(position)?.redo()
 
     override fun finishUpdate(container: ViewGroup) {
         try {

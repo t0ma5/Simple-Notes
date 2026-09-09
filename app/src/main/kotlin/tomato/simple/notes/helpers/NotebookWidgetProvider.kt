@@ -15,15 +15,15 @@ import com.simplemobiletools.commons.helpers.WIDGET_TEXT_COLOR
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import tomato.simple.notes.R
 import tomato.simple.notes.activities.SplashActivity
-import tomato.simple.notes.extensions.notesDB
+import tomato.simple.notes.extensions.notebooksDB
 import tomato.simple.notes.extensions.widgetsDB
 import tomato.simple.notes.models.Widget
 import tomato.simple.notes.services.WidgetService
 
-class MyWidgetProvider : AppWidgetProvider() {
+class NotebookWidgetProvider : AppWidgetProvider() {
     private fun setupAppOpenIntent(context: Context, views: RemoteViews, id: Int, widget: Widget) {
         val intent = context.getLaunchIntent() ?: Intent(context, SplashActivity::class.java)
-        intent.putExtra(OPEN_NOTE_ID, widget.noteId)
+        intent.putExtra(NOTEBOOK_ID, widget.notebookId)
         val pendingIntent = PendingIntent.getActivity(context, widget.widgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         views.setOnClickPendingIntent(id, pendingIntent)
     }
@@ -33,28 +33,27 @@ class MyWidgetProvider : AppWidgetProvider() {
         ensureBackgroundThread {
             for (widgetId in appWidgetIds) {
                 val widget = context.widgetsDB.getWidgetWithWidgetId(widgetId) ?: continue
-                if (widget.isNotebookWidget()) {
+                if (!widget.isNotebookWidget()) {
                     continue
                 }
                 val views = RemoteViews(context.packageName, R.layout.widget)
-                val note = context.notesDB.getNoteWithId(widget.noteId)?.takeUnless { it.isDeleted() }
+                val notebook = context.notebooksDB.getNotebookWithId(widget.notebookId)
                 views.applyColorFilter(R.id.notes_widget_background, widget.widgetBgColor)
                 views.setTextColor(R.id.widget_note_title, widget.widgetTextColor)
-                views.setText(R.id.widget_note_title, note?.title ?: "")
+                views.setText(R.id.widget_note_title, notebook?.title ?: "")
                 views.setVisibleIf(R.id.widget_note_title, widget.widgetShowTitle)
                 setupAppOpenIntent(context, views, R.id.notes_widget_holder, widget)
 
                 Intent(context, WidgetService::class.java).apply {
-                    putExtra(NOTE_ID, widget.noteId)
+                    putExtra(NOTEBOOK_ID, widget.notebookId)
                     putExtra(WIDGET_TEXT_COLOR, widget.widgetTextColor)
                     data = Uri.parse(this.toUri(Intent.URI_INTENT_SCHEME))
                     views.setRemoteAdapter(R.id.notes_widget_listview, this)
                 }
 
                 val startActivityIntent = context.getLaunchIntent() ?: Intent(context, SplashActivity::class.java)
-                startActivityIntent.putExtra(OPEN_NOTE_ID, widget.noteId)
                 val startActivityPendingIntent =
-                    PendingIntent.getActivity(context, widgetId, startActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                    PendingIntent.getActivity(context, widgetId, startActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
                 views.setPendingIntentTemplate(R.id.notes_widget_listview, startActivityPendingIntent)
 
                 appWidgetManager.updateAppWidget(widgetId, views)

@@ -21,11 +21,14 @@ import tomato.simple.notes.helpers.NOTE_ID
 import tomato.simple.notes.helpers.NotesHelper
 import tomato.simple.notes.models.CounterItem
 import tomato.simple.notes.models.Note
+import tomato.simple.notes.models.SnapshotHistory
 import java.io.File
 
 class CounterFragment : NoteFragment() {
 
     private var noteId = 0L
+    private val itemsHistory = SnapshotHistory()
+    private var applyingHistory = false
 
     private lateinit var binding: FragmentCounterBinding
 
@@ -47,6 +50,7 @@ class CounterFragment : NoteFragment() {
         super.setMenuVisibility(menuVisible)
         if (menuVisible) {
             activity?.hideKeyboard()
+            notifyHistoryChanged()
         }
     }
 
@@ -136,6 +140,7 @@ class CounterFragment : NoteFragment() {
                 }
             }
 
+            captureHistory()
             items.addAll(newItems)
             saveNote()
             setupAdapter()
@@ -150,12 +155,14 @@ class CounterFragment : NoteFragment() {
             recyclerView = binding.counterList,
             itemClick = {},
             plusClick = { item, position ->
+                captureHistory()
                 item.count++
                 saveNote(refreshIndex = position)
                 context?.updateWidgets()
             },
             minusClick = { item, position ->
                 if (item.count > 0) {
+                    captureHistory()
                     item.count--
                     saveNote(refreshIndex = position)
                     context?.updateWidgets()
@@ -168,6 +175,7 @@ class CounterFragment : NoteFragment() {
                         com.simplemobiletools.commons.R.string.ok,
                         com.simplemobiletools.commons.R.string.cancel
                     ) {
+                        captureHistory()
                         items.removeAt(position)
                         saveNote()
                         setupAdapter()
@@ -206,6 +214,37 @@ class CounterFragment : NoteFragment() {
             context?.updateWidgets()
             activity?.runOnUiThread(callback)
         }
+    }
+
+    private fun captureHistory() {
+        if (applyingHistory) {
+            return
+        }
+        itemsHistory.push(getCounterItems())
+        notifyHistoryChanged()
+    }
+
+    override fun undo() {
+        val previous = itemsHistory.undo(getCounterItems()) ?: return
+        applySnapshot(previous)
+    }
+
+    override fun redo() {
+        val next = itemsHistory.redo(getCounterItems()) ?: return
+        applySnapshot(next)
+    }
+
+    override fun isUndoAvailable() = itemsHistory.canUndo()
+
+    override fun isRedoAvailable() = itemsHistory.canRedo()
+
+    private fun applySnapshot(json: String) {
+        applyingHistory = true
+        items = Gson().fromJson<ArrayList<CounterItem>>(json, object : TypeToken<List<CounterItem>>() {}.type) ?: ArrayList(1)
+        setupAdapter()
+        saveNote()
+        applyingHistory = false
+        notifyHistoryChanged()
     }
 
     private fun FragmentCounterBinding.toCommonBinding(): CommonNoteBinding = this.let {

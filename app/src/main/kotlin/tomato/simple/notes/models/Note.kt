@@ -28,7 +28,8 @@ data class Note(
     @ColumnInfo(name = "protection_type") var protectionType: Int,
     @ColumnInfo(name = "protection_hash") var protectionHash: String,
     @ColumnInfo(name = "pinned", defaultValue = "0") var pinned: Int = 0,
-    @ColumnInfo(name = "deleted_ts", defaultValue = "0") var deletedTs: Long = 0L
+    @ColumnInfo(name = "deleted_ts", defaultValue = "0") var deletedTs: Long = 0L,
+    @ColumnInfo(name = "tags", defaultValue = "") var tags: String = ""
 ) {
     @Ignore
     var notebookTitle: String? = null
@@ -55,6 +56,14 @@ data class Note(
     fun isPinned() = pinned != 0
 
     fun isDeleted() = deletedTs > 0L
+
+    fun tagList(): List<String> = tags.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+
+    fun formattedTags(): String = tagList().joinToString(" · ")
+
+    fun setTagList(values: List<String>) {
+        tags = values.map { it.trim() }.filter { it.isNotEmpty() }.distinctBy { it.lowercase() }.joinToString(",")
+    }
 
     fun shouldBeUnlocked(context: Context): Boolean {
         return protectionType == PROTECTION_FINGERPRINT && !context.isBiometricIdAvailable()

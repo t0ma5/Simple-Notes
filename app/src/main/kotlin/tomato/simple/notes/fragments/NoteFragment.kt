@@ -72,6 +72,18 @@ abstract class NoteFragment : Fragment() {
         note?.path = path
     }
 
+    open fun undo() {}
+
+    open fun redo() {}
+
+    open fun isUndoAvailable() = false
+
+    open fun isRedoAvailable() = false
+
+    protected fun notifyHistoryChanged() {
+        (activity as? MainActivity)?.currentNoteTextChanged(note?.value ?: "", isUndoAvailable(), isRedoAvailable())
+    }
+
     abstract fun checkLockState()
 
     interface CommonNoteBinding {

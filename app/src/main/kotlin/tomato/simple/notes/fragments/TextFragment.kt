@@ -22,6 +22,7 @@ import androidx.viewbinding.ViewBinding
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.views.MyEditText
 import com.simplemobiletools.commons.views.MyTextView
+import io.noties.markwon.Markwon
 import tomato.simple.notes.R
 import tomato.simple.notes.activities.MainActivity
 import tomato.simple.notes.databinding.FragmentTextBinding
@@ -44,6 +45,7 @@ class TextFragment : NoteFragment() {
     private var textHistory = TextHistory()
     private var isUndoOrRedo = false
     private var skipTextUpdating = false
+    private var isPreviewing = false
     private var noteId = 0L
     private var touchDownX = 0f
     private var moveXThreshold = 0      // make sure swiping across notes works well, do not swallow the gestures
@@ -51,6 +53,7 @@ class TextFragment : NoteFragment() {
     private lateinit var binding: FragmentTextBinding
     private lateinit var innerBinding: ViewBinding
     private lateinit var noteEditText: MyEditText
+    private val markwon by lazy { Markwon.create(requireContext()) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentTextBinding.inflate(inflater, container, false)
@@ -218,9 +221,35 @@ class TextFragment : NoteFragment() {
 
         binding.apply {
             notesCounter.beVisibleIf((!note!!.isLocked() || shouldShowLockedContent) && config!!.showWordCount)
-            notesScrollview.beVisibleIf(!note!!.isLocked() || shouldShowLockedContent)
+            val unlocked = !note!!.isLocked() || shouldShowLockedContent
+            notesScrollview.beVisibleIf(unlocked && !isPreviewing)
+            notesMarkdownScrollview.beVisibleIf(unlocked && isPreviewing)
             setupLockedViews(this.toCommonBinding(), note!!)
         }
+        if (isPreviewing) {
+            renderMarkdownPreview()
+        }
+    }
+
+    fun isMarkdownPreview() = isPreviewing
+
+    fun toggleMarkdownPreview() {
+        if (isPreviewing) {
+            isPreviewing = false
+        } else {
+            saveText(false)
+            activity?.hideKeyboard()
+            isPreviewing = true
+        }
+        checkLockState()
+        (activity as? MainActivity)?.refreshMarkdownMenu()
+    }
+
+    private fun renderMarkdownPreview() {
+        val text = getCurrentNoteViewText() ?: ""
+        binding.notesMarkdownPreview.setTextColor(requireContext().getProperTextColor())
+        binding.notesMarkdownPreview.setTextSize(TypedValue.COMPLEX_UNIT_PX, requireContext().getPercentageFontSize())
+        markwon.setMarkdown(binding.notesMarkdownPreview, text)
     }
 
     fun getNotesView() = noteEditText
@@ -260,7 +289,7 @@ class TextFragment : NoteFragment() {
         binding.notesCounter.text = words.count { it.isNotEmpty() }.toString()
     }
 
-    fun undo() {
+    override fun undo() {
         val edit = textHistory.getPrevious() ?: return
 
         val text = noteEditText.editableText
@@ -290,7 +319,7 @@ class TextFragment : NoteFragment() {
         )
     }
 
-    fun redo() {
+    override fun redo() {
         val edit = textHistory.getNext() ?: return
 
         val text = noteEditText.editableText
@@ -314,9 +343,9 @@ class TextFragment : NoteFragment() {
         )
     }
 
-    fun isUndoAvailable() = textHistory.position > 0
+    override fun isUndoAvailable() = textHistory.position > 0
 
-    fun isRedoAvailable() = textHistory.position < textHistory.history.size
+    override fun isRedoAvailable() = textHistory.position < textHistory.history.size
 
     private var textWatcher: TextWatcher = object : TextWatcher {
         private var beforeChange: CharSequence? = null
