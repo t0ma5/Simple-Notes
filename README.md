@@ -6,7 +6,7 @@
 
 This is an independent fork of Simple Notes Pro 6.17.4. It is not affiliated with Simple Mobile Tools or Fossify.
 
-APKs are published on [GitHub Releases](https://github.com/t0ma5/Simple-Notes/releases). Push a tag `vX.Y.Z` to attach a signed arm64 APK to a release. Every push, pull request, and manual **Build APK** run also uploads the APK as a workflow artifact.
+APKs are published on [GitHub Releases](https://github.com/t0ma5/Simple-Notes/releases) as `Simple-Notes_<version>.apk` (for example `Simple-Notes_6.17.8.apk`). Push a tag `vX.Y.Z` to attach a signed arm64 APK to a release. Every push, pull request, and manual **Build APK** run also uploads the APK as a workflow artifact.
 
 applicationId and Kotlin packages are `tomato.simple.notes`, so it can sit next to Play Store Simple Notes Pro.
 
