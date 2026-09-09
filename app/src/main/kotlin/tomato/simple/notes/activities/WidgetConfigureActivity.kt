@@ -173,7 +173,7 @@ class WidgetConfigureActivity : SimpleActivity() {
                 }
             }
 
-            ChecklistAdapter(this, items, null, binding.checklistNoteView, false) {}.apply {
+            ChecklistAdapter(this, items, null, binding.checklistNoteView, false, note.id!!) {}.apply {
                 updateTextColor(mTextColor)
                 binding.checklistNoteView.adapter = this
             }
