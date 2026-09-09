@@ -8,4 +8,6 @@ interface ChecklistItemsListener {
     fun migrateChecklistItems(itemIds: List<Int>)
 
     fun moveEntireNote()
+
+    fun captureHistory()
 }

@@ -12,5 +12,8 @@ data class Widget(
     @ColumnInfo(name = "note_id") var noteId: Long,
     @ColumnInfo(name = "widget_bg_color") var widgetBgColor: Int,
     @ColumnInfo(name = "widget_text_color") var widgetTextColor: Int,
-    @ColumnInfo(name = "widget_show_title") var widgetShowTitle: Boolean
-)
+    @ColumnInfo(name = "widget_show_title") var widgetShowTitle: Boolean,
+    @ColumnInfo(name = "notebook_id", defaultValue = "0") var notebookId: Long = 0L
+) {
+    fun isNotebookWidget() = notebookId > 0L
+}

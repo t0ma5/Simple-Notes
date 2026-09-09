@@ -42,6 +42,15 @@ fun Context.updateWidgets() {
             sendBroadcast(this)
         }
     }
+
+    val notebookWidgetIDs = AppWidgetManager.getInstance(applicationContext)?.getAppWidgetIds(ComponentName(applicationContext, NotebookWidgetProvider::class.java)) ?: intArrayOf()
+    if (notebookWidgetIDs.isNotEmpty()) {
+        Intent(applicationContext, NotebookWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, notebookWidgetIDs)
+            sendBroadcast(this)
+        }
+    }
 }
 
 fun Context.getPercentageFontSize() = resources.getDimension(com.simplemobiletools.commons.R.dimen.middle_text_size) * (config.fontSizePercentage / 100f)

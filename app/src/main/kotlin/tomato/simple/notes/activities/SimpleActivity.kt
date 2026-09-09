@@ -1,6 +1,9 @@
 package tomato.simple.notes.activities
 
 import com.simplemobiletools.commons.activities.BaseSimpleActivity
+import com.simplemobiletools.commons.helpers.LICENSE_RTL
+import com.simplemobiletools.commons.models.FAQItem
+import tomato.simple.notes.BuildConfig
 import tomato.simple.notes.R
 
 open class SimpleActivity : BaseSimpleActivity() {
@@ -27,4 +30,17 @@ open class SimpleActivity : BaseSimpleActivity() {
     )
 
     override fun getAppLauncherName() = getString(R.string.app_launcher_name)
+
+    fun launchAbout() {
+        val licenses = LICENSE_RTL
+        val faqItems = arrayListOf(
+            FAQItem(R.string.faq_1_title, R.string.faq_1_text),
+            FAQItem(com.simplemobiletools.commons.R.string.faq_1_title_commons, com.simplemobiletools.commons.R.string.faq_1_text_commons),
+        )
+        if (!resources.getBoolean(com.simplemobiletools.commons.R.bool.hide_google_relations)) {
+            faqItems.add(FAQItem(com.simplemobiletools.commons.R.string.faq_2_title_commons, com.simplemobiletools.commons.R.string.faq_2_text_commons))
+            faqItems.add(FAQItem(com.simplemobiletools.commons.R.string.faq_6_title_commons, com.simplemobiletools.commons.R.string.faq_6_text_commons))
+        }
+        startAboutActivity(R.string.app_name, licenses, BuildConfig.VERSION_NAME, faqItems, true)
+    }
 }

@@ -2,6 +2,17 @@
 <resources>
     <string name="app_name">Simple Notes</string>
     <string name="app_launcher_name">Notes</string>
+    <string name="about_footer"></string>
+    <string name="markdown_preview">Markdown preview</string>
+    <string name="edit_note">Edit</string>
+    <string name="tags">Tags</string>
+    <string name="edit_tags">Edit tags</string>
+    <string name="tags_hint">Comma-separated, e.g. work, ideas</string>
+    <string name="no_tags_yet">No tags yet. Add some from a note.</string>
+    <string name="filter_by_tag">Filter by tag</string>
+    <string name="notebook_widget">Notebook</string>
+    <string name="notebook_shown_widget">Notebook shown in the widget:</string>
+    <string name="show_notebook_title">Show notebook title</string>
     <string name="widget_config">Simple Notes</string>
     <string name="cannot_share_empty_text">Cannot share empty text</string>
     <string name="notebook_columns">Notebook columns</string>

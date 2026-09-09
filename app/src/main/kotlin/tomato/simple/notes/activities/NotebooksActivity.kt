@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.PROTECTION_NONE
-import tomato.simple.notes.BuildConfig
 import tomato.simple.notes.R
 import tomato.simple.notes.adapters.NotebooksAdapter
 import tomato.simple.notes.adapters.SearchResultsAdapter
@@ -51,6 +50,10 @@ class NotebooksActivity : SimpleActivity() {
             when (menuItem.itemId) {
                 R.id.search -> {
                     toggleSearch()
+                    true
+                }
+                R.id.filter_by_tag -> {
+                    filterByTag()
                     true
                 }
                 R.id.recycle_bin -> {
@@ -333,6 +336,38 @@ class NotebooksActivity : SimpleActivity() {
         }
     }
 
+    private fun filterByTag() {
+        ensureBackgroundThread {
+            val tags = NoteSearchHelper(this).allTags()
+            runOnUiThread {
+                if (tags.isEmpty()) {
+                    toast(R.string.no_tags_yet)
+                    return@runOnUiThread
+                }
+
+                val items = ArrayList<com.simplemobiletools.commons.models.RadioItem>()
+                tags.forEachIndexed { index, tag ->
+                    items.add(com.simplemobiletools.commons.models.RadioItem(index, tag))
+                }
+                com.simplemobiletools.commons.dialogs.RadioGroupDialog(this, items) {
+                    val tag = tags[it as Int]
+                    searchVisible = true
+                    binding.notebooksSearch.beVisible()
+                    binding.notebooksSearch.setText(tag)
+                    ensureBackgroundThread {
+                        val results = NoteSearchHelper(this).notesWithTag(tag)
+                        runOnUiThread {
+                            searchAdapter?.updateItems(results)
+                            binding.notebooksList.beGone()
+                            binding.searchResultsList.beVisible()
+                            binding.newNotebookFab.beGone()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private fun toggleSearch() {
         searchVisible = !searchVisible
         binding.notebooksSearch.beVisibleIf(searchVisible)
@@ -415,14 +450,5 @@ class NotebooksActivity : SimpleActivity() {
         NotesHelper(this).insertOrUpdateNote(note) {
             callback()
         }
-    }
-
-    private fun launchAbout() {
-        val message = "${getString(R.string.app_name)}\n${BuildConfig.VERSION_NAME}"
-        AlertDialog.Builder(this)
-            .setTitle(com.simplemobiletools.commons.R.string.about)
-            .setMessage(message)
-            .setPositiveButton(com.simplemobiletools.commons.R.string.ok, null)
-            .show()
     }
 }

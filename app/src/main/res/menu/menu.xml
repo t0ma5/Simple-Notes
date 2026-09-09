@@ -45,6 +45,14 @@
         android:title="@string/unpin_note"
         app:showAsAction="never" />
     <item
+        android:id="@+id/markdown_preview"
+        android:title="@string/markdown_preview"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/edit_tags"
+        android:title="@string/tags"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/remove_done_items"
         android:title="@string/remove_done_items"
         app:showAsAction="never" />

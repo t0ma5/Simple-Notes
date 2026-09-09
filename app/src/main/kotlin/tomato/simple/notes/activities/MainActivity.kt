@@ -34,7 +34,6 @@ import com.simplemobiletools.commons.helpers.*
 import com.simplemobiletools.commons.models.FileDirItem
 import com.simplemobiletools.commons.models.RadioItem
 import com.simplemobiletools.commons.views.MyEditText
-import tomato.simple.notes.BuildConfig
 import tomato.simple.notes.R
 import tomato.simple.notes.adapters.NotesPagerAdapter
 import tomato.simple.notes.databases.NotesDatabase
@@ -195,12 +194,12 @@ class MainActivity : SimpleActivity() {
 
         binding.mainToolbar.menu.apply {
             findItem(R.id.undo).apply {
-                isVisible = showUndoButton && mCurrentNote.type == NoteType.TYPE_TEXT
+                isVisible = showUndoButton
                 icon?.alpha = if (isEnabled) 255 else 127
             }
 
             findItem(R.id.redo).apply {
-                isVisible = showRedoButton && mCurrentNote.type == NoteType.TYPE_TEXT
+                isVisible = showRedoButton
                 icon?.alpha = if (isEnabled) 255 else 127
             }
 
@@ -209,13 +208,20 @@ class MainActivity : SimpleActivity() {
             findItem(R.id.delete_note).isVisible = multipleNotesExist
             findItem(R.id.pin_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && !mCurrentNote.isPinned())
             findItem(R.id.unpin_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && mCurrentNote.isPinned())
-            findItem(R.id.open_search).isVisible = !isCurrentItemChecklist && !isCurrentItemCounter
+            findItem(R.id.open_search).isVisible =
+                !isCurrentItemChecklist && !isCurrentItemCounter && (getCurrentFragment() as? TextFragment)?.isMarkdownPreview() != true
             findItem(R.id.remove_done_items).isVisible = isCurrentItemChecklist
             findItem(R.id.sort_checklist).isVisible = isCurrentItemChecklist
             findItem(R.id.import_folder).isVisible = !isQPlus()
             findItem(R.id.lock_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && !mCurrentNote.isLocked())
             findItem(R.id.unlock_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && mCurrentNote.isLocked())
 
+            findItem(R.id.markdown_preview).apply {
+                val textFragment = getCurrentFragment() as? tomato.simple.notes.fragments.TextFragment
+                isVisible = ::mCurrentNote.isInitialized && mCurrentNote.type == NoteType.TYPE_TEXT
+                title = if (textFragment?.isMarkdownPreview() == true) getString(R.string.edit_note) else getString(R.string.markdown_preview)
+            }
+            findItem(R.id.edit_tags).isVisible = mNotes.isNotEmpty() && ::mCurrentNote.isInitialized
             findItem(R.id.new_note).isVisible = !isGeneralNotebook()
             findItem(R.id.move_note).isVisible = !isGeneralNotebook() && mNotes.isNotEmpty()
 
@@ -243,6 +249,8 @@ class MainActivity : SimpleActivity() {
                 R.id.new_note -> displayNewNoteDialog()
                 R.id.rename_note -> fragment?.handleUnlocking { displayRenameDialog() }
                 R.id.pin_note, R.id.unpin_note -> fragment?.handleUnlocking { togglePinnedNote() }
+                R.id.markdown_preview -> fragment?.handleUnlocking { toggleMarkdownPreview() }
+                R.id.edit_tags -> fragment?.handleUnlocking { displayTagsDialog() }
                 R.id.share -> fragment?.handleUnlocking { shareText() }
                 R.id.cab_create_shortcut -> createShortcut()
                 R.id.lock_note -> lockNote()
@@ -762,15 +770,6 @@ class MainActivity : SimpleActivity() {
     private fun launchSettings() {
         hideKeyboard()
         startActivity(Intent(applicationContext, SettingsActivity::class.java))
-    }
-
-    private fun launchAbout() {
-        val message = "${getString(R.string.app_name)}\n${BuildConfig.VERSION_NAME}"
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle(com.simplemobiletools.commons.R.string.about)
-            .setMessage(message)
-            .setPositiveButton(com.simplemobiletools.commons.R.string.ok, null)
-            .show()
     }
 
     private fun tryOpenFile() {
@@ -1399,6 +1398,26 @@ class MainActivity : SimpleActivity() {
             requiredHash = mCurrentNote.protectionHash,
             successCallback = { _, _ -> removeProtection(mCurrentNote) }
         )
+    }
+
+    fun refreshMarkdownMenu() {
+        refreshMenuItems()
+    }
+
+    private fun toggleMarkdownPreview() {
+        (getCurrentFragment() as? tomato.simple.notes.fragments.TextFragment)?.toggleMarkdownPreview()
+        refreshMenuItems()
+    }
+
+    private fun displayTagsDialog() {
+        if (!::mCurrentNote.isInitialized) {
+            return
+        }
+
+        tomato.simple.notes.dialogs.EditTagsDialog(this, mCurrentNote) { updated ->
+            mCurrentNote.tags = updated.tags
+            mNotes.firstOrNull { it.id == updated.id }?.tags = updated.tags
+        }
     }
 
     private fun togglePinnedNote() {

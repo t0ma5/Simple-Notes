@@ -25,11 +25,14 @@ import tomato.simple.notes.helpers.NotesHelper
 import tomato.simple.notes.interfaces.ChecklistItemsListener
 import tomato.simple.notes.models.ChecklistItem
 import tomato.simple.notes.models.Note
+import tomato.simple.notes.models.SnapshotHistory
 import java.io.File
 
 class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
 
     private var noteId = 0L
+    private val itemsHistory = SnapshotHistory()
+    private var applyingHistory = false
 
     private lateinit var binding: FragmentChecklistBinding
 
@@ -52,6 +55,7 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
 
         if (menuVisible) {
             activity?.hideKeyboard()
+            notifyHistoryChanged()
         } else if (::binding.isInitialized) {
             (binding.checklistList.adapter as? ChecklistAdapter)?.finishActMode()
         }
@@ -156,6 +160,7 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
                 }
             }
 
+            captureHistory()
             if (config?.addNewChecklistItemsTop == true) {
                 items.addAll(0, newItems)
             } else {
@@ -184,6 +189,7 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
             showIcons = true
         ) { item ->
             val clickedNote = item as ChecklistItem
+            captureHistory()
             clickedNote.isDone = !clickedNote.isDone
 
             saveNote(items.indexOfFirst { it.id == clickedNote.id })
@@ -224,6 +230,7 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
     }
 
     fun removeDoneItems() {
+        captureHistory()
         items = items.filter { !it.isDone }.toMutableList() as ArrayList<ChecklistItem>
         saveNote()
         setupAdapter()
@@ -241,6 +248,38 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
 
     override fun saveChecklist(callback: () -> Unit) {
         saveNote(callback = callback)
+    }
+
+    override fun captureHistory() {
+        if (applyingHistory) {
+            return
+        }
+        itemsHistory.push(getChecklistItems())
+        notifyHistoryChanged()
+    }
+
+    override fun undo() {
+        val previous = itemsHistory.undo(getChecklistItems()) ?: return
+        applySnapshot(previous)
+    }
+
+    override fun redo() {
+        val next = itemsHistory.redo(getChecklistItems()) ?: return
+        applySnapshot(next)
+    }
+
+    override fun isUndoAvailable() = itemsHistory.canUndo()
+
+    override fun isRedoAvailable() = itemsHistory.canRedo()
+
+    private fun applySnapshot(json: String) {
+        applyingHistory = true
+        val checklistItemType = object : TypeToken<List<ChecklistItem>>() {}.type
+        items = Gson().fromJson<ArrayList<ChecklistItem>>(json, checklistItemType) ?: ArrayList(1)
+        setupAdapter()
+        saveNote()
+        applyingHistory = false
+        notifyHistoryChanged()
     }
 
     override fun refreshItems() {
@@ -294,6 +333,7 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
                 
                 // Remove items from current note
                 activity?.runOnUiThread {
+                    captureHistory()
                     items.removeAll(itemsToMigrate)
                     saveNote()
                     setupAdapter()

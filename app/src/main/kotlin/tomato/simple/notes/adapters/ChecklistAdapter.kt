@@ -126,6 +126,7 @@ class ChecklistAdapter(
         val item = getSelectedItems().first()
         RenameChecklistItemDialog(activity, item.title) {
             val position = getSelectedItemPositions().first()
+            listener?.captureHistory()
             item.title = it
             listener?.saveChecklist()
             notifyItemChanged(position)
@@ -154,6 +155,7 @@ class ChecklistAdapter(
             }
         }
 
+        listener?.captureHistory()
         items.removeAll(removeItems.toSet())
         positions.sortDescending()
         removeSelectedItems(positions)
@@ -166,6 +168,7 @@ class ChecklistAdapter(
     }
 
     private fun moveSelectedItemsToTop() {
+        listener?.captureHistory()
         activity.config.sorting = SORT_BY_CUSTOM
         val movedPositions = mutableListOf<Int>()
         selectedKeys.reversed().forEach { checklistId ->
@@ -183,6 +186,7 @@ class ChecklistAdapter(
     }
 
     private fun moveSelectedItemsToBottom() {
+        listener?.captureHistory()
         activity.config.sorting = SORT_BY_CUSTOM
         val movedPositions = mutableListOf<Int>()
         selectedKeys.forEach { checklistId ->
@@ -236,7 +240,13 @@ class ChecklistAdapter(
         }
     }
 
+    private var capturedDrag = false
+
     override fun onRowMoved(fromPosition: Int, toPosition: Int) {
+        if (!capturedDrag) {
+            listener?.captureHistory()
+            capturedDrag = true
+        }
         activity.config.sorting = SORT_BY_CUSTOM
         if (fromPosition < toPosition) {
             for (i in fromPosition until toPosition) {
@@ -251,6 +261,7 @@ class ChecklistAdapter(
     }
 
     override fun onRowSelected(myViewHolder: ViewHolder?) {
+        capturedDrag = false
     }
 
     override fun onRowClear(myViewHolder: ViewHolder?) {

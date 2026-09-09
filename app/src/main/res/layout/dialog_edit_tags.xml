@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dialog_holder"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/activity_margin">
+
+    <com.simplemobiletools.commons.views.MyTextInputLayout
+        android:id="@+id/note_tags_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/tags_hint">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/note_tags_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapSentences"
+            android:textCursorDrawable="@null"
+            android:textSize="@dimen/bigger_text_size" />
+
+    </com.simplemobiletools.commons.views.MyTextInputLayout>
+</LinearLayout>

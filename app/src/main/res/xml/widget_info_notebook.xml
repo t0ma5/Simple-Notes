@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:configure="tomato.simple.notes.activities.WidgetConfigureActivity"
+    android:configure="tomato.simple.notes.activities.NotebookWidgetConfigureActivity"
     android:initialLayout="@layout/widget"
     android:minWidth="110dp"
     android:minHeight="110dp"
@@ -9,5 +9,4 @@
     android:previewImage="@drawable/img_widget_preview"
     android:resizeMode="horizontal|vertical"
     android:targetCellWidth="2"
-    android:targetCellHeight="2"
-    android:widgetCategory="home_screen" />
+    android:targetCellHeight="2" />

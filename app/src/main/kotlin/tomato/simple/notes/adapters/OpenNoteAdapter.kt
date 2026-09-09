@@ -74,6 +74,10 @@ class OpenNoteAdapter(
             iconLock.setImageDrawable(activity.resources.getColoredDrawableWithColor(com.simplemobiletools.commons.R.drawable.ic_lock_vector, properPrimaryColor))
             iconPin.beVisibleIf(note.isPinned())
             iconPin.setImageDrawable(activity.resources.getColoredDrawableWithColor(tomato.simple.notes.R.drawable.ic_pin_vector, properPrimaryColor))
+            val tags = note.formattedTags()
+            openNoteItemTags.beVisibleIf(tags.isNotEmpty())
+            openNoteItemTags.text = tags
+            openNoteItemTags.setTextColor(textColor)
             openNoteItemText.apply {
                 text = formattedText
                 setTextColor(textColor)

@@ -21,8 +21,9 @@ app-build-javaVersion = "VERSION_17"
 app-build-kotlinJVMTarget = "17"
 #versioning
 app-version-appId = "tomato.simple.notes"
-app-version-versionCode = "120"
-app-version-versionName = "6.17.6"
+app-version-versionCode = "121"
+app-version-versionName = "6.17.7"
+markwon = "4.6.2"
 [libraries]
 #AndroidX
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidx-constraintlayout" }
@@ -35,6 +36,7 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 simple-tools-commons = { module = "com.github.SimpleMobileTools:Simple-Commons", version.ref = "simple-commons" }
 #Kotlin
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+markwon-core = { module = "io.noties.markwon:core", version.ref = "markwon" }
 [bundles]
 room = [
     "androidx-room-ktx",

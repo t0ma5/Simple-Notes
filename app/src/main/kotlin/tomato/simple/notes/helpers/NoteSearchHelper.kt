@@ -44,7 +44,7 @@ class NoteSearchHelper(private val context: Context) {
 
         context.notesDB.getNotes().forEach { note ->
             val notebook = notebooksById[note.notebookId]
-            if (notebook?.isLocked() == true && !note.title.lowercase().contains(needle)) {
+            if (notebook?.isLocked() == true && !note.title.lowercase().contains(needle) && !note.tags.lowercase().contains(needle)) {
                 return@forEach
             }
 
@@ -63,8 +63,34 @@ class NoteSearchHelper(private val context: Context) {
         return results
     }
 
+    fun notesWithTag(tag: String): List<NoteSearchResult> {
+        val needle = tag.trim().lowercase()
+        if (needle.isEmpty()) {
+            return emptyList()
+        }
+
+        val notebooksById = context.notebooksDB.getNotebooks().associateBy { it.id }
+        return context.notesDB.getNotes().filter { note ->
+            note.tagList().any { it.lowercase() == needle }
+        }.map { note ->
+            NoteSearchResult(
+                note = note,
+                title = note.title,
+                subtitle = listOfNotNull(notebooksById[note.notebookId]?.title, note.formattedTags().ifEmpty { null }).joinToString(" · ")
+            )
+        }
+    }
+
+    fun allTags(): List<String> {
+        return context.notesDB.getNotes()
+            .flatMap { it.tagList() }
+            .distinctBy { it.lowercase() }
+            .sortedBy { it.lowercase() }
+    }
+
     private fun buildSearchableText(note: Note, includeBody: Boolean): String {
         val builder = StringBuilder(note.title.lowercase())
+        builder.append(' ').append(note.tags.lowercase())
         if (!includeBody) {
             return builder.toString()
         }

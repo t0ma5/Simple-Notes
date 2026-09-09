@@ -37,10 +37,31 @@ class WidgetAdapter(val context: Context, val intent: Intent) : RemoteViewsServi
     private var note: Note? = null
     private var checklistItems = mutableListOf<ChecklistItem>()
     private var counterItems = mutableListOf<CounterItem>()
+    private var notebookNotes = listOf<Note>()
+    private var isNotebookWidget = false
 
     override fun getViewAt(position: Int): RemoteViews {
         val noteId = intent.getLongExtra(NOTE_ID, 0L)
         val remoteView: RemoteViews
+
+        if (isNotebookWidget) {
+            val textSize = context.getPercentageFontSize() / context.resources.displayMetrics.density
+            val rowNote = notebookNotes.getOrNull(position)
+            return RemoteViews(context.packageName, R.layout.widget_text_layout).apply {
+                val title = rowNote?.title ?: ""
+                for (id in textIds) {
+                    setText(id, title)
+                    setTextColor(id, widgetTextColor)
+                    setTextSize(id, textSize)
+                    setViewVisibility(id, View.GONE)
+                }
+                setViewVisibility(getProperTextView(context), View.VISIBLE)
+                Intent().apply {
+                    putExtra(OPEN_NOTE_ID, rowNote?.id ?: 0L)
+                    setOnClickFillInIntent(widget_text_holder, this)
+                }
+            }
+        }
 
         if (note == null) {
             return RemoteViews(context.packageName, R.layout.widget_text_layout)
@@ -129,6 +150,12 @@ class WidgetAdapter(val context: Context, val intent: Intent) : RemoteViewsServi
 
     override fun onDataSetChanged() {
         widgetTextColor = intent.getIntExtra(WIDGET_TEXT_COLOR, DEFAULT_WIDGET_TEXT_COLOR)
+        val notebookId = intent.getLongExtra(NOTEBOOK_ID, 0L)
+        isNotebookWidget = notebookId > 0L
+        if (isNotebookWidget) {
+            notebookNotes = context.notesDB.getNotesInNotebook(notebookId)
+            return
+        }
         val noteId = intent.getLongExtra(NOTE_ID, 0L)
         note = context.notesDB.getNoteWithId(noteId)?.takeUnless { it.isDeleted() }
         if (note?.type == NoteType.TYPE_CHECKLIST) {
@@ -151,10 +178,10 @@ class WidgetAdapter(val context: Context, val intent: Intent) : RemoteViewsServi
     override fun hasStableIds() = true
 
     override fun getCount(): Int {
-        return if (note?.type == NoteType.TYPE_CHECKLIST) {
-            checklistItems.size
-        } else {
-            1
+        return when {
+            isNotebookWidget -> notebookNotes.size
+            note?.type == NoteType.TYPE_CHECKLIST -> checklistItems.size
+            else -> 1
         }
     }
 
