@@ -101,4 +101,27 @@
             android:text="@string/move_done_checklist_items" />
 
     </RelativeLayout>
+
+    <include
+        android:id="@+id/use_for_this_checklist_divider"
+        layout="@layout/divider" />
+
+    <RelativeLayout
+        android:id="@+id/use_for_this_checklist_holder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/medium_margin"
+        android:background="?attr/selectableItemBackground"
+        android:paddingTop="@dimen/medium_margin"
+        android:paddingBottom="@dimen/medium_margin">
+
+        <com.simplemobiletools.commons.views.MyAppCompatCheckbox
+            android:id="@+id/use_for_this_checklist_only"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:clickable="false"
+            android:text="@string/use_for_this_checklist_only" />
+
+    </RelativeLayout>
 </LinearLayout>

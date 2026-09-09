@@ -14,7 +14,7 @@ import tomato.simple.notes.databinding.DialogNewChecklistItemBinding
 import tomato.simple.notes.databinding.ItemAddChecklistBinding
 import tomato.simple.notes.extensions.config
 
-class NewChecklistItemDialog(val activity: Activity, callback: (titles: ArrayList<String>) -> Unit) {
+class NewChecklistItemDialog(val activity: Activity, private val noteId: Long? = null, callback: (titles: ArrayList<String>) -> Unit) {
     private val titles = mutableListOf<AppCompatEditText>()
     private val binding = DialogNewChecklistItemBinding.inflate(activity.layoutInflater)
     private val view = binding.root
@@ -32,7 +32,7 @@ class NewChecklistItemDialog(val activity: Activity, callback: (titles: ArrayLis
             addItem.setOnClickListener {
                 addNewEditText()
             }
-            settingsAddChecklistTop.beVisibleIf(activity.config.sorting == SORT_BY_CUSTOM)
+            settingsAddChecklistTop.beVisibleIf(activity.config.getChecklistSorting(noteId) and SORT_BY_CUSTOM != 0)
             settingsAddChecklistTop.isChecked = activity.config.addNewChecklistItemsTop
         }
 
@@ -41,6 +41,7 @@ class NewChecklistItemDialog(val activity: Activity, callback: (titles: ArrayLis
             .setNegativeButton(com.simplemobiletools.commons.R.string.cancel, null)
             .apply {
                 activity.setupDialogStuff(view, this, R.string.add_new_checklist_items) { alertDialog ->
+                    alertDialog.setCanceledOnTouchOutside(false)
                     alertDialog.showKeyboard(titles.first())
                     alertDialog.getButton(BUTTON_POSITIVE).setOnClickListener {
                         activity.config.addNewChecklistItemsTop = binding.settingsAddChecklistTop.isChecked

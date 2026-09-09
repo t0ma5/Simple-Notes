@@ -205,20 +205,21 @@ class MainActivity : SimpleActivity() {
 
             findItem(R.id.rename_note).isVisible = multipleNotesExist
             findItem(R.id.open_note).isVisible = multipleNotesExist
-            findItem(R.id.delete_note).isVisible = multipleNotesExist
+            findItem(R.id.delete_note).isVisible = mNotes.isNotEmpty()
             findItem(R.id.pin_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && !mCurrentNote.isPinned())
             findItem(R.id.unpin_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && mCurrentNote.isPinned())
             findItem(R.id.open_search).isVisible =
                 !isCurrentItemChecklist && !isCurrentItemCounter && (getCurrentFragment() as? TextFragment)?.isMarkdownPreview() != true
-            findItem(R.id.remove_done_items).isVisible = isCurrentItemChecklist
-            findItem(R.id.sort_checklist).isVisible = isCurrentItemChecklist
+            findItem(R.id.remove_done_items).isVisible = isCurrentItemChecklist && mNotes.isNotEmpty()
+            findItem(R.id.uncheck_all_items).isVisible = isCurrentItemChecklist && mNotes.isNotEmpty()
+            findItem(R.id.sort_checklist).isVisible = isCurrentItemChecklist && mNotes.isNotEmpty()
             findItem(R.id.import_folder).isVisible = !isQPlus()
             findItem(R.id.lock_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && !mCurrentNote.isLocked())
             findItem(R.id.unlock_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && mCurrentNote.isLocked())
 
             findItem(R.id.markdown_preview).apply {
                 val textFragment = getCurrentFragment() as? tomato.simple.notes.fragments.TextFragment
-                isVisible = ::mCurrentNote.isInitialized && mCurrentNote.type == NoteType.TYPE_TEXT
+                isVisible = mNotes.isNotEmpty() && ::mCurrentNote.isInitialized && mCurrentNote.type == NoteType.TYPE_TEXT
                 title = if (textFragment?.isMarkdownPreview() == true) getString(R.string.edit_note) else getString(R.string.markdown_preview)
             }
             findItem(R.id.edit_tags).isVisible = mNotes.isNotEmpty() && ::mCurrentNote.isInitialized
@@ -264,6 +265,7 @@ class MainActivity : SimpleActivity() {
                 R.id.settings -> launchSettings()
                 R.id.about -> launchAbout()
                 R.id.remove_done_items -> fragment?.handleUnlocking { removeDoneItems() }
+                R.id.uncheck_all_items -> fragment?.handleUnlocking { uncheckAllItems() }
                 R.id.sort_checklist -> fragment?.handleUnlocking { displaySortChecklistDialog() }
                 else -> return@setOnMenuItemClickListener false
             }
@@ -512,6 +514,14 @@ class MainActivity : SimpleActivity() {
                 .forEach(::removeProtection)
 
             mNotes = notes
+            if (mNotes.isEmpty()) {
+                mAdapter = NotesPagerAdapter(supportFragmentManager, mNotes, this)
+                binding.viewPager.adapter = mAdapter
+                hideKeyboard()
+                refreshMenuItems()
+                return@getNotesInNotebook
+            }
+
             mCurrentNote = mNotes[0]
             mAdapter = NotesPagerAdapter(supportFragmentManager, mNotes, this)
             binding.viewPager.apply {
@@ -1248,7 +1258,7 @@ class MainActivity : SimpleActivity() {
     }
 
     fun deleteNote(deleteFile: Boolean, note: Note) {
-        if (mNotes.size <= 1 || note != mCurrentNote) {
+        if (mNotes.isEmpty() || note != mCurrentNote) {
             return
         }
 
@@ -1263,37 +1273,48 @@ class MainActivity : SimpleActivity() {
 
     private fun doDeleteNote(note: Note, deleteFile: Boolean) {
         val currentNoteIndex = mNotes.indexOf(note)
-        val noteToRefresh = mNotes[if (currentNoteIndex > 0) currentNoteIndex - 1 else currentNoteIndex + 1]
+        val noteToRefresh = when {
+            mNotes.size <= 1 -> null
+            currentNoteIndex > 0 -> mNotes[currentNoteIndex - 1]
+            else -> mNotes.getOrNull(currentNoteIndex + 1)
+        }
 
         RecycleBinHelper(this).deleteNote(note) {
             if (config.useRecycleBin) {
                 toast(R.string.moved_to_recycle_bin)
             }
-            refreshNotes(noteToRefresh, deleteFile)
+            note.id?.let {
+                config.removeChecklistSorting(it)
+            }
+            refreshNotes(noteToRefresh, note, deleteFile)
         }
     }
 
-    private fun refreshNotes(note: Note, deleteFile: Boolean) {
+    private fun refreshNotes(noteToShow: Note?, deletedNote: Note, deleteFile: Boolean) {
         NotesHelper(this).getNotesInNotebook(currentNotebookId) {
             mNotes = it
-            val noteId = note.id
-            updateSelectedNote(noteId!!)
-            if (config.widgetNoteId == note.id) {
-                config.widgetNoteId = mCurrentNote.id!!
-                updateWidgets()
+            if (mNotes.isEmpty()) {
+                initViewPager()
+            } else {
+                val noteId = noteToShow?.id ?: mNotes.first().id
+                updateSelectedNote(noteId!!)
+                if (config.widgetNoteId == deletedNote.id) {
+                    config.widgetNoteId = mCurrentNote.id!!
+                    updateWidgets()
+                }
+
+                initViewPager()
             }
 
-            initViewPager()
-
             if (deleteFile) {
-                deleteFile(FileDirItem(note.path, note.title)) {
+                deleteFile(FileDirItem(deletedNote.path, deletedNote.title)) {
                     if (!it) {
                         toast(com.simplemobiletools.commons.R.string.unknown_error_occurred)
                     }
                 }
             }
 
-            if (it.size == 1 && config.showNotePicker) {
+            if (it.size <= 1 && config.showNotePicker) {
                 config.showNotePicker = false
             }
         }
@@ -1483,8 +1504,12 @@ class MainActivity : SimpleActivity() {
         getPagerAdapter().removeDoneCheckListItems(binding.viewPager.currentItem)
     }
 
+    private fun uncheckAllItems() {
+        getPagerAdapter().uncheckAllCheckListItems(binding.viewPager.currentItem)
+    }
+
     private fun displaySortChecklistDialog() {
-        SortChecklistDialog(this) {
+        SortChecklistDialog(this, mCurrentNote.id) {
             getPagerAdapter().refreshChecklist(binding.viewPager.currentItem)
             updateWidgets()
         }

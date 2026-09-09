@@ -104,4 +104,27 @@ class Config(context: Context) : BaseConfig(context) {
     var useRecycleBin: Boolean
         get() = prefs.getBoolean(USE_RECYCLE_BIN, true)
         set(useRecycleBin) = prefs.edit().putBoolean(USE_RECYCLE_BIN, useRecycleBin).apply()
+
+    fun getChecklistSorting(noteId: Long?): Int {
+        if (noteId != null && prefs.contains("$CHECKLIST_SORTING_PREFIX$noteId")) {
+            return prefs.getInt("$CHECKLIST_SORTING_PREFIX$noteId", sorting)
+        }
+        return sorting
+    }
+
+    fun saveChecklistSorting(noteId: Long, sorting: Int) {
+        prefs.edit().putInt("$CHECKLIST_SORTING_PREFIX$noteId", sorting).apply()
+    }
+
+    fun removeChecklistSorting(noteId: Long) {
+        prefs.edit().remove("$CHECKLIST_SORTING_PREFIX$noteId").apply()
+    }
+
+    fun hasCustomChecklistSorting(noteId: Long) = prefs.contains("$CHECKLIST_SORTING_PREFIX$noteId")
+
+    fun getCheckedItemsCollapsed(noteId: Long) = prefs.getBoolean("$CHECKED_ITEMS_COLLAPSED_PREFIX$noteId", false)
+
+    fun saveCheckedItemsCollapsed(noteId: Long, collapsed: Boolean) {
+        prefs.edit().putBoolean("$CHECKED_ITEMS_COLLAPSED_PREFIX$noteId", collapsed).apply()
+    }
 }

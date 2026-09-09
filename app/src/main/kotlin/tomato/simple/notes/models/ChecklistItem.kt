@@ -1,7 +1,9 @@
 package tomato.simple.notes.models
 
+import com.simplemobiletools.commons.helpers.SORT_BY_CUSTOM
 import com.simplemobiletools.commons.helpers.SORT_BY_TITLE
 import com.simplemobiletools.commons.helpers.SORT_DESCENDING
+import tomato.simple.notes.helpers.CHECKED_ITEMS_TITLE_ID
 import tomato.simple.notes.helpers.CollatorBasedComparator
 import tomato.simple.notes.helpers.SORT_BY_DONE
 import kotlinx.serialization.Serializable
@@ -16,7 +18,21 @@ data class ChecklistItem(
 
     companion object {
         var sorting = 0
+
+        fun sorted(items: List<ChecklistItem>, sorting: Int, moveDoneToBottom: Boolean): MutableList<ChecklistItem> {
+            this.sorting = sorting
+            val result = items.filter { !it.isSectionHeader() }.toMutableList()
+            if (sorting and SORT_BY_CUSTOM == 0) {
+                result.sort()
+                if (moveDoneToBottom) {
+                    result.sortBy { it.isDone }
+                }
+            }
+            return result
+        }
     }
+
+    fun isSectionHeader() = id == CHECKED_ITEMS_TITLE_ID
 
     override fun compareTo(other: ChecklistItem): Int {
         var result = when {

@@ -125,6 +125,9 @@
     <string name="add_new_checklist_items">Add new checklist items</string>
     <string name="checklist_is_empty">The checklist is empty</string>
     <string name="remove_done_items">Remove done items</string>
+    <string name="uncheck_all_items">Uncheck all items</string>
+    <string name="checked_items_count">Checked items (%d)</string>
+    <string name="use_for_this_checklist_only">Use for this checklist only</string>
     <string name="add_to_the_top">Add to the top</string>
 
     <string name="delete_counter_item">Delete counter item</string>

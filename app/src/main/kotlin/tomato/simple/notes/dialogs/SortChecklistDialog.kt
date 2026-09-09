@@ -13,16 +13,17 @@ import tomato.simple.notes.activities.SimpleActivity
 import tomato.simple.notes.databinding.DialogSortChecklistBinding
 import tomato.simple.notes.extensions.config
 
-class SortChecklistDialog(private val activity: SimpleActivity, private val callback: () -> Unit) {
+class SortChecklistDialog(private val activity: SimpleActivity, private val noteId: Long?, private val callback: () -> Unit) {
     private val binding = DialogSortChecklistBinding.inflate(activity.layoutInflater)
     private val view = binding.root
     private val config = activity.config
-    private var currSorting = config.sorting
+    private var currSorting = config.getChecklistSorting(noteId)
 
     init {
         setupSortRadio()
         setupOrderRadio()
         setupMoveUndoneChecklistItems()
+        setupUseForThisChecklistOnly()
 
         activity.getAlertDialogBuilder()
             .setPositiveButton(com.simplemobiletools.commons.R.string.ok) { _, _ -> dialogConfirmed() }
@@ -34,7 +35,7 @@ class SortChecklistDialog(private val activity: SimpleActivity, private val call
 
     private fun setupSortRadio() {
         val fieldRadio = binding.sortingDialogRadioSorting
-        fieldRadio.setOnCheckedChangeListener { group, checkedId ->
+        fieldRadio.setOnCheckedChangeListener { _, checkedId ->
             val isCustomSorting = checkedId == binding.sortingDialogRadioCustom.id
             binding.sortingDialogRadioOrder.beGoneIf(isCustomSorting)
             binding.sortingDialogOrderDivider.root.beGoneIf(isCustomSorting)
@@ -76,6 +77,15 @@ class SortChecklistDialog(private val activity: SimpleActivity, private val call
         }
     }
 
+    private fun setupUseForThisChecklistOnly() {
+        binding.useForThisChecklistHolder.beGoneIf(noteId == null)
+        binding.useForThisChecklistDivider.root.beGoneIf(noteId == null)
+        binding.useForThisChecklistOnly.isChecked = true
+        binding.useForThisChecklistHolder.setOnClickListener {
+            binding.useForThisChecklistOnly.toggle()
+        }
+    }
+
     private fun dialogConfirmed() {
         val sortingRadio = binding.sortingDialogRadioSorting
         var sorting = when (sortingRadio.checkedRadioButtonId) {
@@ -91,7 +101,12 @@ class SortChecklistDialog(private val activity: SimpleActivity, private val call
             sorting = sorting or SORT_DESCENDING
         }
 
-        if (currSorting != sorting) {
+        if (noteId != null && binding.useForThisChecklistOnly.isChecked) {
+            config.saveChecklistSorting(noteId, sorting)
+        } else {
+            if (noteId != null) {
+                config.removeChecklistSorting(noteId)
+            }
             config.sorting = sorting
         }
 

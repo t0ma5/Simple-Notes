@@ -20,6 +20,8 @@ applicationId and Kotlin packages are `tomato.simple.notes`, so it can sit next 
 - Tags on notes, searchable from the notebooks screen.
 - Home-screen notebook widget.
 - Undo and redo for text, checklist, and counter edits.
+- Uncheck all checklist items, collapse checked items, and sort each checklist independently. The add-item dialog stays open if you tap outside it.
+- Delete the last remaining note.
 - Counter notes with colored increment/decrement buttons.
 - Move checklist items or whole notes between notebooks.
 - Optional encrypted exports.
