@@ -45,6 +45,9 @@ const val EXPORT_MIME_TYPE = "text/plain"
 const val ADD_NEW_CHECKLIST_ITEMS_TOP = "add_new_checklist_items_top"
 const val NOTEBOOK_COLUMNS = "notebook_columns"
 const val USE_RECYCLE_BIN = "use_recycle_bin"
+const val CHECKLIST_SORTING_PREFIX = "checklist_sorting_"
+const val CHECKED_ITEMS_COLLAPSED_PREFIX = "checked_items_collapsed_"
+const val CHECKED_ITEMS_TITLE_ID = -1
 const val RECYCLE_BIN_RETENTION_MS = 30L * 24 * 60 * 60 * 1000
 
 // auto backups

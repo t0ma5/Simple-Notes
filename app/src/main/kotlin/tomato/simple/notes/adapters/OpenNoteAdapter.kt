@@ -16,7 +16,6 @@ import com.simplemobiletools.commons.extensions.beVisibleIf
 import com.simplemobiletools.commons.extensions.getColoredDrawableWithColor
 import com.simplemobiletools.commons.extensions.isBlackAndWhiteTheme
 import com.simplemobiletools.commons.helpers.LOWER_ALPHA_INT
-import com.simplemobiletools.commons.helpers.SORT_BY_CUSTOM
 import com.simplemobiletools.commons.views.MyRecyclerView
 import tomato.simple.notes.databinding.OpenNoteItemBinding
 import tomato.simple.notes.extensions.config
@@ -110,21 +109,11 @@ class OpenNoteAdapter(
             NoteType.TYPE_CHECKLIST -> {
                 val checklistItemType = object : TypeToken<List<ChecklistItem>>() {}.type
                 var items = Gson().fromJson<List<ChecklistItem>>(getNoteStoredValue(context), checklistItemType) ?: listOf()
-                items = items.filter { it.title != null }.let {
-                    val sorting = context.config.sorting
-                    ChecklistItem.sorting = sorting
-                    if (ChecklistItem.sorting and SORT_BY_CUSTOM == 0) {
-                        it.sorted().let {
-                            if (context.config.moveDoneChecklistItems) {
-                                it.sortedBy { it.isDone }
-                            } else {
-                                it
-                            }
-                        }
-                    } else {
-                        it
-                    }
-                }
+                items = ChecklistItem.sorted(
+                    items.filter { it.title != null },
+                    context.config.getChecklistSorting(id),
+                    context.config.moveDoneChecklistItems
+                )
                 val linePrefix = "• "
                 val stringifiedItems = items.joinToString(separator = System.lineSeparator()) {
                     "${linePrefix}${it.title}"

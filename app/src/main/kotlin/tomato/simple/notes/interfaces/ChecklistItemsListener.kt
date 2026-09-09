@@ -1,5 +1,7 @@
 package tomato.simple.notes.interfaces
 
+import tomato.simple.notes.models.ChecklistItem
+
 interface ChecklistItemsListener {
     fun refreshItems()
 
@@ -10,4 +12,6 @@ interface ChecklistItemsListener {
     fun moveEntireNote()
 
     fun captureHistory()
+
+    fun onItemsReordered(reorderedItems: List<ChecklistItem>) {}
 }

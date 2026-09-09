@@ -9,7 +9,6 @@ import android.widget.TextView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.simplemobiletools.commons.extensions.*
-import com.simplemobiletools.commons.helpers.SORT_BY_CUSTOM
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import tomato.simple.notes.R
 import tomato.simple.notes.activities.MainActivity
@@ -20,6 +19,7 @@ import tomato.simple.notes.dialogs.NewChecklistItemDialog
 import tomato.simple.notes.dialogs.MigrateChecklistItemsDialog
 import tomato.simple.notes.extensions.config
 import tomato.simple.notes.extensions.updateWidgets
+import tomato.simple.notes.helpers.CHECKED_ITEMS_TITLE_ID
 import tomato.simple.notes.helpers.NOTE_ID
 import tomato.simple.notes.helpers.NotesHelper
 import tomato.simple.notes.interfaces.ChecklistItemsListener
@@ -71,12 +71,7 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
                     items = Gson().fromJson<ArrayList<ChecklistItem>>(storedNote.getNoteStoredValue(requireActivity()), checklistItemType) ?: ArrayList(1)
 
                     // checklist title can be null only because of the glitch in upgrade to 6.6.0, remove this check in the future
-                    items = items.filter { it.title != null }.toMutableList() as ArrayList<ChecklistItem>
-                    val sorting = config?.sorting ?: 0
-                    if (sorting and SORT_BY_CUSTOM == 0 && config?.moveDoneChecklistItems == true) {
-                        items.sortBy { it.isDone }
-                    }
-
+                    items = items.filter { it.title != null && !it.isSectionHeader() }.toMutableList() as ArrayList<ChecklistItem>
                     setupFragment()
                 } catch (e: Exception) {
                     migrateCheckListOnFailure(storedNote)
@@ -149,7 +144,7 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
     }
 
     private fun showNewItemDialog() {
-        NewChecklistItemDialog(activity as SimpleActivity) { titles ->
+        NewChecklistItemDialog(activity as SimpleActivity, noteId) { titles ->
             var currentMaxId = items.maxByOrNull { item -> item.id }?.id ?: 0
             val newItems = ArrayList<ChecklistItem>()
 
@@ -161,6 +156,7 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
             }
 
             captureHistory()
+            items = persistedItems()
             if (config?.addNewChecklistItemsTop == true) {
                 items.addAll(0, newItems)
             } else {
@@ -174,29 +170,64 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
 
     private fun setupAdapter() {
         updateUIVisibility()
-        ChecklistItem.sorting = requireContext().config.sorting
-        if (ChecklistItem.sorting and SORT_BY_CUSTOM == 0) {
-            items.sort()
-            if (context?.config?.moveDoneChecklistItems == true) {
-                items.sortBy { it.isDone }
-            }
-        }
+        val ctx = context ?: return
+        items = ChecklistItem.sorted(
+            items = persistedItems(),
+            sorting = ctx.config.getChecklistSorting(noteId),
+            moveDoneToBottom = ctx.config.moveDoneChecklistItems
+        )
+        val displayedItems = displayedItems()
         ChecklistAdapter(
             activity = activity as SimpleActivity,
-            items = items,
+            items = displayedItems,
             listener = this,
             recyclerView = binding.checklistList,
-            showIcons = true
+            showIcons = true,
+            noteId = noteId
         ) { item ->
             val clickedNote = item as ChecklistItem
+            if (clickedNote.isSectionHeader()) {
+                val collapsed = ctx.config.getCheckedItemsCollapsed(noteId)
+                ctx.config.saveCheckedItemsCollapsed(noteId, !collapsed)
+                setupAdapter()
+                return@ChecklistAdapter
+            }
             captureHistory()
             clickedNote.isDone = !clickedNote.isDone
 
-            saveNote(items.indexOfFirst { it.id == clickedNote.id })
+            saveNote()
+            setupAdapter()
             context?.updateWidgets()
         }.apply {
             binding.checklistList.adapter = this
         }
+    }
+
+    private fun persistedItems() = items.filter { !it.isSectionHeader() }.toMutableList()
+
+    private fun displayedItems(): MutableList<ChecklistItem> {
+        if (config?.moveDoneChecklistItems != true) {
+            return items
+        }
+
+        val checkedItems = items.filter { it.isDone }
+        if (checkedItems.isEmpty()) {
+            return items
+        }
+
+        val displayed = items.filter { !it.isDone }.toMutableList()
+        displayed.add(
+            ChecklistItem(
+                id = CHECKED_ITEMS_TITLE_ID,
+                dateCreated = 0L,
+                title = getString(R.string.checked_items_count, checkedItems.size),
+                isDone = false
+            )
+        )
+        if (config?.getCheckedItemsCollapsed(noteId) != true) {
+            displayed.addAll(checkedItems)
+        }
+        return displayed
     }
 
     private fun saveNote(refreshIndex: Int = -1, callback: () -> Unit = {}) {
@@ -231,23 +262,47 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
 
     fun removeDoneItems() {
         captureHistory()
-        items = items.filter { !it.isDone }.toMutableList() as ArrayList<ChecklistItem>
+        items = persistedItems().filter { !it.isDone }.toMutableList() as ArrayList<ChecklistItem>
+        saveNote()
+        setupAdapter()
+    }
+
+    fun uncheckAllItems() {
+        captureHistory()
+        persistedItems().forEach { it.isDone = false }
         saveNote()
         setupAdapter()
     }
 
     private fun updateUIVisibility() {
+        val isEmpty = persistedItems().isEmpty()
         binding.apply {
-            fragmentPlaceholder.beVisibleIf(items.isEmpty())
-            fragmentPlaceholder2.beVisibleIf(items.isEmpty())
-            checklistList.beVisibleIf(items.isNotEmpty())
+            fragmentPlaceholder.beVisibleIf(isEmpty)
+            fragmentPlaceholder2.beVisibleIf(isEmpty)
+            checklistList.beVisibleIf(!isEmpty)
         }
     }
 
-    fun getChecklistItems() = Gson().toJson(items)
+    fun getChecklistItems() = Gson().toJson(persistedItems())
 
     override fun saveChecklist(callback: () -> Unit) {
+        syncFromDisplayed()
         saveNote(callback = callback)
+    }
+
+    override fun onItemsReordered(reorderedItems: List<ChecklistItem>) {
+        syncFromDisplayed(reorderedItems)
+    }
+
+    private fun syncFromDisplayed(displayed: List<ChecklistItem>? = (binding.checklistList.adapter as? ChecklistAdapter)?.items) {
+        if (displayed == null) {
+            items = persistedItems()
+            return
+        }
+        val visible = displayed.filter { !it.isSectionHeader() }
+        val visibleIds = visible.map { it.id }.toSet()
+        val hidden = persistedItems().filter { it.id !in visibleIds }
+        items = (visible + hidden).toMutableList()
     }
 
     override fun captureHistory() {
@@ -276,6 +331,7 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
         applyingHistory = true
         val checklistItemType = object : TypeToken<List<ChecklistItem>>() {}.type
         items = Gson().fromJson<ArrayList<ChecklistItem>>(json, checklistItemType) ?: ArrayList(1)
+        items = persistedItems()
         setupAdapter()
         saveNote()
         applyingHistory = false
@@ -301,7 +357,7 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
     }
 
     private fun performMigration(itemIds: List<Int>, targetNoteId: Long) {
-        val itemsToMigrate = items.filter { it.id in itemIds }
+            val itemsToMigrate = persistedItems().filter { it.id in itemIds }
         
         NotesHelper(requireActivity()).getNoteWithId(targetNoteId) { targetNote ->
             if (targetNote == null) {
@@ -334,7 +390,7 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
                 // Remove items from current note
                 activity?.runOnUiThread {
                     captureHistory()
-                    items.removeAll(itemsToMigrate)
+                    items = persistedItems().filter { it.id !in itemIds }.toMutableList()
                     saveNote()
                     setupAdapter()
                     context?.updateWidgets()

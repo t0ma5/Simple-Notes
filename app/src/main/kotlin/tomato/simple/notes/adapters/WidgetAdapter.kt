@@ -9,7 +9,6 @@ import android.widget.RemoteViewsService
 import com.simplemobiletools.commons.extensions.adjustAlpha
 import com.simplemobiletools.commons.extensions.setText
 import com.simplemobiletools.commons.extensions.setTextSize
-import com.simplemobiletools.commons.helpers.SORT_BY_CUSTOM
 import com.simplemobiletools.commons.helpers.WIDGET_TEXT_COLOR
 import tomato.simple.notes.R
 import tomato.simple.notes.R.id.widget_text_holder
@@ -163,13 +162,8 @@ class WidgetAdapter(val context: Context, val intent: Intent) : RemoteViewsServi
 
             // checklist title can be null only because of the glitch in upgrade to 6.6.0, remove this check in the future
             checklistItems = checklistItems.filter { it.title != null }.toMutableList() as ArrayList<ChecklistItem>
-            val sorting = context.config?.sorting ?: 0
-            if (sorting and SORT_BY_CUSTOM == 0) {
-                checklistItems.sort()
-                if (context?.config?.moveDoneChecklistItems == true) {
-                    checklistItems.sortBy { it.isDone }
-                }
-            }
+            val sorting = context.config.getChecklistSorting(note?.id)
+            checklistItems = ChecklistItem.sorted(checklistItems, sorting, context.config.moveDoneChecklistItems)
         } else if (note?.type == NoteType.TYPE_COUNTER) {
             counterItems = note!!.getNoteStoredValue(context)?.ifEmpty { "[]" }?.let { Json.decodeFromString(it) } ?: mutableListOf()
         }

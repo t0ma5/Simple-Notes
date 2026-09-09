@@ -21,6 +21,7 @@ import com.simplemobiletools.commons.interfaces.ItemTouchHelperContract
 import com.simplemobiletools.commons.interfaces.StartReorderDragListener
 import com.simplemobiletools.commons.views.MyRecyclerView
 import tomato.simple.notes.R
+import tomato.simple.notes.databinding.ItemCheckedTasksBinding
 import tomato.simple.notes.databinding.ItemChecklistBinding
 import tomato.simple.notes.dialogs.RenameChecklistItemDialog
 import tomato.simple.notes.extensions.config
@@ -31,10 +32,14 @@ import tomato.simple.notes.models.ChecklistItem
 import java.util.Collections
 
 class ChecklistAdapter(
-    activity: BaseSimpleActivity, var items: MutableList<ChecklistItem>, val listener: ChecklistItemsListener?,
-    recyclerView: MyRecyclerView, val showIcons: Boolean, itemClick: (Any) -> Unit
-) :
-    MyRecyclerViewAdapter(activity, recyclerView, itemClick), ItemTouchHelperContract {
+    activity: BaseSimpleActivity,
+    var items: MutableList<ChecklistItem>,
+    val listener: ChecklistItemsListener?,
+    recyclerView: MyRecyclerView,
+    val showIcons: Boolean,
+    private val noteId: Long,
+    itemClick: (Any) -> Unit
+) : MyRecyclerViewAdapter(activity, recyclerView, itemClick), ItemTouchHelperContract {
 
     private lateinit var crossDrawable: Drawable
     private lateinit var checkDrawable: Drawable
@@ -71,9 +76,9 @@ class ChecklistAdapter(
         }
     }
 
-    override fun getSelectableItemCount() = items.size
+    override fun getSelectableItemCount() = items.count { !it.isSectionHeader() }
 
-    override fun getIsItemSelectable(position: Int) = true
+    override fun getIsItemSelectable(position: Int) = items.getOrNull(position)?.isSectionHeader() != true
 
     override fun getItemSelectionKey(position: Int) = items.getOrNull(position)?.id
 
@@ -96,14 +101,31 @@ class ChecklistAdapter(
         menu.findItem(R.id.cab_rename).isVisible = isOneItemSelected()
     }
 
+    override fun getItemViewType(position: Int) = if (items.getOrNull(position)?.isSectionHeader() == true) {
+        VIEW_TYPE_CHECKED_SECTION
+    } else {
+        VIEW_TYPE_ITEM
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return createViewHolder(ItemChecklistBinding.inflate(layoutInflater, parent, false).root)
+        val view = if (viewType == VIEW_TYPE_CHECKED_SECTION) {
+            ItemCheckedTasksBinding.inflate(layoutInflater, parent, false).root
+        } else {
+            ItemChecklistBinding.inflate(layoutInflater, parent, false).root
+        }
+        return createViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.bindView(item, true, true) { itemView, layoutPosition ->
-            setupView(itemView, item, holder)
+        if (item.isSectionHeader()) {
+            holder.bindView(item, true, false) { itemView, _ ->
+                setupSectionView(itemView, item)
+            }
+        } else {
+            holder.bindView(item, true, true) { itemView, _ ->
+                setupView(itemView, item, holder)
+            }
         }
         bindViewHolder(holder)
     }
@@ -157,11 +179,12 @@ class ChecklistAdapter(
 
         listener?.captureHistory()
         items.removeAll(removeItems.toSet())
+        listener?.onItemsReordered(items)
         positions.sortDescending()
         removeSelectedItems(positions)
 
         listener?.saveChecklist {
-            if (items.isEmpty()) {
+            if (items.none { !it.isSectionHeader() }) {
                 listener.refreshItems()
             }
         }
@@ -169,10 +192,13 @@ class ChecklistAdapter(
 
     private fun moveSelectedItemsToTop() {
         listener?.captureHistory()
-        activity.config.sorting = SORT_BY_CUSTOM
+        activity.config.saveChecklistSorting(noteId, SORT_BY_CUSTOM)
         val movedPositions = mutableListOf<Int>()
         selectedKeys.reversed().forEach { checklistId ->
             val position = items.indexOfFirst { it.id == checklistId }
+            if (position == -1 || items[position].isSectionHeader()) {
+                return@forEach
+            }
             val tempItem = items[position]
             items.removeAt(position)
             movedPositions.add(position)
@@ -182,15 +208,19 @@ class ChecklistAdapter(
         movedPositions.forEach {
             notifyItemMoved(it, 0)
         }
+        listener?.onItemsReordered(items)
         listener?.saveChecklist()
     }
 
     private fun moveSelectedItemsToBottom() {
         listener?.captureHistory()
-        activity.config.sorting = SORT_BY_CUSTOM
+        activity.config.saveChecklistSorting(noteId, SORT_BY_CUSTOM)
         val movedPositions = mutableListOf<Int>()
         selectedKeys.forEach { checklistId ->
             val position = items.indexOfFirst { it.id == checklistId }
+            if (position == -1 || items[position].isSectionHeader()) {
+                return@forEach
+            }
             val tempItem = items[position]
             items.removeAt(position)
             movedPositions.add(position)
@@ -200,12 +230,28 @@ class ChecklistAdapter(
         movedPositions.forEach {
             notifyItemMoved(it, items.size - 1)
         }
+        listener?.onItemsReordered(items)
         listener?.saveChecklist()
     }
 
     private fun getItemWithKey(key: Int): ChecklistItem? = items.firstOrNull { it.id == key }
 
-    private fun getSelectedItems() = items.filter { selectedKeys.contains(it.id) } as ArrayList<ChecklistItem>
+    private fun getSelectedItems() = items.filter { selectedKeys.contains(it.id) && !it.isSectionHeader() } as ArrayList<ChecklistItem>
+
+    private fun setupSectionView(view: View, checklistItem: ChecklistItem) {
+        ItemCheckedTasksBinding.bind(view).apply {
+            checkedTasksTitle.apply {
+                text = checklistItem.title
+                setTextColor(textColor)
+                setTextSize(TypedValue.COMPLEX_UNIT_PX, context.getPercentageFontSize())
+            }
+
+            val headerIndex = items.indexOfFirst { it.id == checklistItem.id }
+            val collapsed = headerIndex == items.lastIndex
+            checkedTasksChevron.rotation = if (collapsed) 180f else 0f
+            checkedTasksChevron.applyColorFilter(textColor)
+        }
+    }
 
     private fun setupView(view: View, checklistItem: ChecklistItem, holder: ViewHolder) {
         val isSelected = selectedKeys.contains(checklistItem.id)
@@ -231,7 +277,7 @@ class ChecklistAdapter(
 
             checklistDragHandle.beVisibleIf(selectedKeys.isNotEmpty())
             checklistDragHandle.applyColorFilter(textColor)
-            checklistDragHandle.setOnTouchListener { v, event ->
+            checklistDragHandle.setOnTouchListener { _, event ->
                 if (event.action == MotionEvent.ACTION_DOWN) {
                     startReorderDragListener.requestDrag(holder)
                 }
@@ -243,11 +289,16 @@ class ChecklistAdapter(
     private var capturedDrag = false
 
     override fun onRowMoved(fromPosition: Int, toPosition: Int) {
+        val fromItem = items.getOrNull(fromPosition) ?: return
+        val toItem = items.getOrNull(toPosition) ?: return
+        if (fromItem.isSectionHeader() || toItem.isSectionHeader()) {
+            return
+        }
         if (!capturedDrag) {
             listener?.captureHistory()
             capturedDrag = true
         }
-        activity.config.sorting = SORT_BY_CUSTOM
+        activity.config.saveChecklistSorting(noteId, SORT_BY_CUSTOM)
         if (fromPosition < toPosition) {
             for (i in fromPosition until toPosition) {
                 Collections.swap(items, i, i + 1)
@@ -265,6 +316,12 @@ class ChecklistAdapter(
     }
 
     override fun onRowClear(myViewHolder: ViewHolder?) {
+        listener?.onItemsReordered(items)
         listener?.saveChecklist()
+    }
+
+    companion object {
+        private const val VIEW_TYPE_ITEM = 0
+        private const val VIEW_TYPE_CHECKED_SECTION = 1
     }
 }
