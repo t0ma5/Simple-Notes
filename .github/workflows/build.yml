@@ -106,9 +106,25 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/Simple-Notes_*.apk
-          generate_release_notes: true
+          generate_release_notes: false
           body: |
-            Release-signed arm64-v8a APK (`Simple-Notes_<version>.apk`) for applicationId tomato.simple.notes.
-            It can sit next to Play Store Simple Notes Pro.
+            ## New features ahead of upstream 6.17.0
+
+            - Notebooks: create, rename, delete, pin, reorder, and password-protect collections of notes.
+            - Search notes and notebooks from the notebooks screen.
+            - Pin individual notes.
+            - Recycle bin for deleted notes and notebooks.
+            - Markdown preview for text notes.
+            - Tags on notes, searchable from the notebooks screen.
+            - Home-screen notebook widget.
+            - Undo and redo for text, checklist, and counter edits.
+            - Uncheck all checklist items, collapse checked items, and sort each checklist independently. The add-item dialog stays open if you tap outside it.
+            - Delete the last remaining note.
+            - Counter notes with colored increment/decrement buttons.
+            - Move checklist items or whole notes between notebooks.
+            - Optional encrypted exports.
+            - No donation, rate, or “what's new” popups.
+
+            Release-signed arm64-v8a APK (`Simple-Notes_<version>.apk`) for applicationId tomato.simple.notes. It can sit next to Play Store Simple Notes Pro.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
