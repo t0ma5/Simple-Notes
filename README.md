@@ -17,7 +17,11 @@ Simple-Notes (GPL-3.0) was my favorite FOSS notes app until the project was sold
 
 This fork is not affiliated with Simple Mobile Tools, Fossify or ZipoApps.
 
-APKs are published on [GitHub Releases](https://github.com/t0ma5/Simple-Notes/releases) as `Simple-Notes_<version>-FOSS-arm64-v8a.apk` (most phones), `...-armeabi-v7a.apk`, `...-x86_64.apk`, and `...-FOSS-universal.apk` (all ABIs). Push a tag `vX.Y.Z` to attach signed APKs to a release. Every push, pull request, and manual **Build APK** run also uploads the APKs as a workflow artifact.
+APKs are published on [GitHub Releases](https://github.com/t0ma5/Simple-Notes/releases)
+- `Simple-Notes_<version>-FOSS-arm64-v8a.apk` (most phones)
+- `Simple-Notes_<version>-FOSS-armeabi-v7a.apk`
+- `Simple-Notes_<version>-FOSS-x86_64.apk` (emulators)
+- `Simple-Notes_<version>-FOSS-universal.apk` (all included)
 
 ## New features ahead of upstream 6.17.0
 
