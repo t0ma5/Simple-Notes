@@ -1,10 +1,17 @@
 package tomato.simple.notes.activities
 
+import android.content.Intent
+import androidx.appcompat.widget.Toolbar
 import com.simplemobiletools.commons.activities.BaseSimpleActivity
+import com.simplemobiletools.commons.activities.CustomizationActivity
+import com.simplemobiletools.commons.extensions.getProperPrimaryColor
+import com.simplemobiletools.commons.helpers.APP_ICON_IDS
+import com.simplemobiletools.commons.helpers.APP_LAUNCHER_NAME
 import com.simplemobiletools.commons.helpers.LICENSE_GSON
 import com.simplemobiletools.commons.helpers.LICENSE_KOTLINX_SERIALIZATION
 import com.simplemobiletools.commons.helpers.LICENSE_MARKWON
 import com.simplemobiletools.commons.helpers.LICENSE_RTL
+import com.simplemobiletools.commons.helpers.NavigationIcon
 import com.simplemobiletools.commons.models.FAQItem
 import tomato.simple.notes.BuildConfig
 import tomato.simple.notes.R
@@ -33,6 +40,18 @@ open class SimpleActivity : BaseSimpleActivity() {
     )
 
     override fun getAppLauncherName() = getString(R.string.app_launcher_name)
+
+    fun setupPrimaryToolbar(toolbar: Toolbar, navigationIcon: NavigationIcon = NavigationIcon.None) {
+        setupToolbar(toolbar, navigationIcon, getProperPrimaryColor())
+    }
+
+    fun openColorCustomization() {
+        Intent(this, CustomizationActivity::class.java).apply {
+            putExtra(APP_ICON_IDS, getAppIconIDs())
+            putExtra(APP_LAUNCHER_NAME, getAppLauncherName())
+            startActivity(this)
+        }
+    }
 
     fun launchAbout() {
         val licenses = LICENSE_RTL or LICENSE_GSON or LICENSE_MARKWON or LICENSE_KOTLINX_SERIALIZATION

@@ -25,8 +25,9 @@ APKs are published on [GitHub Releases](https://github.com/t0ma5/Simple-Notes/re
 4. **Widgets** — Settings → Customize widget colors updates every Notes widget, not only the first one.
 5. **Save icon / search** — Saved text notes no longer show Save again after a swipe. In-note search no longer crashes after changing notes.
 6. **Android 16** — compileSdk and targetSdk 36. Toolbar sits below the status bar.
-7. **Notes / notebooks** — Toolbar icon switches a two-column notes card grid and the notebooks grid. Notes is the default after install. Notebook cards show a smaller icon, a note count, and a six-dot handle that opens the same menu as a long-press. Every notebook can be deleted; you can add notes in any of them. First install no longer creates a fake “General note”.
+7. **Notes / notebooks** — Toolbar icon switches a two-column notes card grid and the notebooks grid. Notes is the default after install. Notebook cards show a smaller icon, a note count, and a six-dot handle (`:::`) that opens the same menu as a long-press. Every notebook can be deleted; you can add notes in any of them. First install no longer creates a fake “General note”.
 8. **About licences** — Third party licences now include Gson, Markwon, and Kotlinx Serialization.
+9. **Dark red theme** — Default is the screenshot mockup turned dark: `#121212` page, `#1E1E1E` cards, light text, red toolbar. Status bar matches the red bar so the clock stays readable. Settings no longer closes on its own.
 
 ## New features ahead of upstream 6.17.0
 

@@ -44,7 +44,7 @@ class RecycleBinActivity : SimpleActivity() {
 
     override fun onResume() {
         super.onResume()
-        setupToolbar(binding.recycleBinToolbar, NavigationIcon.Arrow)
+        setupPrimaryToolbar(binding.recycleBinToolbar, NavigationIcon.Arrow)
         updateTextColors(binding.recycleBinCoordinator)
         binding.recycleBinEmpty.setTextColor(getProperTextColor())
         refreshItems()

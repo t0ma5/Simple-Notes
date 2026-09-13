@@ -10,8 +10,11 @@ import kotlin.math.hypot
 import com.simplemobiletools.commons.extensions.applyColorFilter
 import com.simplemobiletools.commons.extensions.getColoredDrawableWithColor
 import com.simplemobiletools.commons.extensions.getProperPrimaryColor
+import com.simplemobiletools.commons.extensions.getProperTextColor
 import tomato.simple.notes.R
 import tomato.simple.notes.databinding.ItemNotebookBinding
+import tomato.simple.notes.extensions.applyNoteCardBackground
+import tomato.simple.notes.extensions.getMutedTextColor
 import tomato.simple.notes.models.Notebook
 import java.util.Collections
 
@@ -37,28 +40,35 @@ class NotebooksAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val notebook = notebooks[position]
+        val context = holder.itemView.context
+        val primary = context.getProperPrimaryColor()
+        val text = context.getProperTextColor()
+        val muted = context.getMutedTextColor()
         holder.binding.apply {
+            root.applyNoteCardBackground()
             notebookTitle.text = notebook.title
+            notebookTitle.setTextColor(text)
             val count = noteCounts[notebook.id] ?: 0
             notebookNoteCount.text = root.resources.getQuantityString(R.plurals.notebook_note_count, count, count)
-            notebookIcon.applyColorFilter(root.context.getProperPrimaryColor())
+            notebookNoteCount.setTextColor(muted)
+            notebookIcon.applyColorFilter(primary)
             notebookLockIcon.visibility = if (notebook.isLocked()) android.view.View.VISIBLE else android.view.View.GONE
             if (notebook.isLocked()) {
                 notebookLockIcon.setImageDrawable(
                     root.resources.getColoredDrawableWithColor(
                         com.simplemobiletools.commons.R.drawable.ic_lock_vector,
-                        root.context.getProperPrimaryColor()
+                        primary
                     )
                 )
-                notebookLockIcon.applyColorFilter(root.context.getProperPrimaryColor())
+                notebookLockIcon.applyColorFilter(primary)
             }
 
             notebookPinnedIcon.visibility = if (notebook.isPinned()) View.VISIBLE else View.GONE
             if (notebook.isPinned()) {
-                notebookPinnedIcon.applyColorFilter(root.context.getProperPrimaryColor())
+                notebookPinnedIcon.applyColorFilter(primary)
             }
 
-            notebookDragHandle.applyColorFilter(root.context.getProperPrimaryColor())
+            notebookDragHandle.applyColorFilter(muted)
             val touchSlop = ViewConfiguration.get(root.context).scaledTouchSlop
             notebookDragHandle.setOnTouchListener { _, event ->
                 when (event.actionMasked) {

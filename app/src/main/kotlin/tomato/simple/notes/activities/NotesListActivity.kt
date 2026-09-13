@@ -116,7 +116,7 @@ class NotesListActivity : SimpleActivity() {
 
     override fun onResume() {
         super.onResume()
-        setupToolbar(
+        setupPrimaryToolbar(
             binding.notesListToolbar,
             if (filterNotebookId > 0L) NavigationIcon.Arrow else NavigationIcon.None
         )

@@ -6,6 +6,9 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.view.View
 import androidx.core.app.AlarmManagerCompat
 import com.simplemobiletools.commons.activities.BaseSimpleActivity
 import com.simplemobiletools.commons.extensions.*
@@ -54,6 +57,39 @@ fun Context.updateWidgets() {
 }
 
 fun Context.getPercentageFontSize() = resources.getDimension(com.simplemobiletools.commons.R.dimen.middle_text_size) * (config.fontSizePercentage / 100f)
+
+fun Context.getCardSurfaceColor(): Int {
+    val bg = getProperBackgroundColor()
+    return if (bg.getContrastColor() == Color.WHITE) {
+        resources.getColor(R.color.note_card_surface, theme)
+    } else {
+        Color.WHITE
+    }
+}
+
+fun Context.getMutedTextColor(): Int {
+    return if (getProperBackgroundColor().getContrastColor() == Color.WHITE) {
+        resources.getColor(R.color.note_card_muted, theme)
+    } else {
+        getProperTextColor().adjustAlpha(0.65f)
+    }
+}
+
+fun View.applyNoteCardBackground() {
+    val surface = context.getCardSurfaceColor()
+    val stroke = if (surface == Color.WHITE) {
+        Color.parseColor("#FFE0E0E0")
+    } else {
+        context.resources.getColor(R.color.note_card_stroke, context.theme)
+    }
+    val radius = 10 * resources.displayMetrics.density
+    background = GradientDrawable().apply {
+        shape = GradientDrawable.RECTANGLE
+        setColor(surface)
+        cornerRadius = radius
+        setStroke((1 * resources.displayMetrics.density).toInt().coerceAtLeast(1), stroke)
+    }
+}
 
 fun BaseSimpleActivity.requestUnlockNotes(notes: List<Note>, callback: (unlockedNotes: List<Note>) -> Unit) {
     val lockedNotes = notes.filter { it.isLocked() }

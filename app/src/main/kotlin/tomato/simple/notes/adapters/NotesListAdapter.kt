@@ -10,6 +10,8 @@ import com.simplemobiletools.commons.extensions.getProperPrimaryColor
 import com.simplemobiletools.commons.extensions.getProperTextColor
 import tomato.simple.notes.R
 import tomato.simple.notes.databinding.ItemNoteCardBinding
+import tomato.simple.notes.extensions.applyNoteCardBackground
+import tomato.simple.notes.extensions.getMutedTextColor
 import tomato.simple.notes.helpers.previewText
 import tomato.simple.notes.models.Note
 import tomato.simple.notes.models.Notebook
@@ -33,7 +35,9 @@ class NotesListAdapter(
         val context = holder.itemView.context
         val primary = context.getProperPrimaryColor()
         val text = context.getProperTextColor()
+        val muted = context.getMutedTextColor()
         holder.binding.apply {
+            root.applyNoteCardBackground()
             noteCardTitle.text = note.title
             noteCardTitle.setTextColor(text)
             val preview = note.previewText(context)
@@ -52,7 +56,7 @@ class NotesListAdapter(
             }
             val notebookTitle = notebooksById[note.notebookId]?.title.orEmpty()
             noteCardNotebook.text = notebookTitle
-            noteCardNotebook.setTextColor(text)
+            noteCardNotebook.setTextColor(muted)
             noteCardNotebook.beVisibleIf(showNotebookName && notebookTitle.isNotEmpty())
             root.setOnClickListener { itemClick(note) }
         }

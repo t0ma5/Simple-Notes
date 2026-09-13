@@ -541,10 +541,16 @@ def main() -> None:
                 '    <color name="color_primary_dark">#FFB71C1C</color>\n',
             ),
             (
+                '    <color name="theme_dark_red_primary_color">@color/md_red_700</color>\n',
+                '    <color name="theme_dark_red_primary_color">@color/md_red_700</color>\n'
+                '    <color name="theme_dark_red_text_color">#FFF5F5F5</color>\n'
+                '    <color name="theme_dark_red_background_color">#FF121212</color>\n',
+            ),
+            (
                 '    <color name="default_text_color">@color/theme_dark_text_color</color>\n'
                 '    <color name="default_background_color">@color/theme_dark_background_color</color>\n',
-                '    <color name="default_text_color">@color/theme_light_text_color</color>\n'
-                '    <color name="default_background_color">#FFFAFAFA</color>\n',
+                '    <color name="default_text_color">#FFF5F5F5</color>\n'
+                '    <color name="default_background_color">#FF121212</color>\n',
             ),
         ],
     )
@@ -584,11 +590,36 @@ def main() -> None:
                 '                )\n',
                 '                MyTheme(\n'
                 '                    getString(R.string.dark_red),\n'
-                '                    R.color.theme_light_text_color,\n'
-                '                    R.color.theme_light_background_color,\n'
+                '                    R.color.theme_dark_red_text_color,\n'
+                '                    R.color.theme_dark_red_background_color,\n'
                 '                    R.color.theme_dark_red_primary_color,\n'
                 '                    R.color.md_red_700\n'
                 '                )\n',
+            ),
+        ],
+    )
+    patch(
+        "commons/src/main/kotlin/com/simplemobiletools/commons/activities/BaseSimpleActivity.kt",
+        [
+            (
+                '        val backgroundColor = getProperBackgroundColor()\n'
+                '        updateStatusbarColor(backgroundColor)\n'
+                '        updateActionbarColor(backgroundColor)\n',
+                '        val topColor = getProperPrimaryColor()\n'
+                '        updateStatusbarColor(topColor)\n'
+                '        updateActionbarColor(topColor)\n',
+            ),
+            (
+                '    fun getRequiredStatusBarColor(): Int {\n'
+                '        return if ((scrollingView is RecyclerView || scrollingView is NestedScrollView) && scrollingView?.computeVerticalScrollOffset() == 0) {\n'
+                '            getProperBackgroundColor()\n'
+                '        } else {\n'
+                '            getColoredMaterialStatusBarColor()\n'
+                '        }\n'
+                '    }\n',
+                '    fun getRequiredStatusBarColor(): Int {\n'
+                '        return getProperPrimaryColor()\n'
+                '    }\n',
             ),
         ],
     )

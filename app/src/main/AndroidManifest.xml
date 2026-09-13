@@ -114,7 +114,7 @@
             android:configChanges="orientation"
             android:exported="true"
             android:label="@string/settings"
-            android:parentActivityName=".activities.MainActivity">
+            android:parentActivityName=".activities.NotesListActivity">
 
             <intent-filter>
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />

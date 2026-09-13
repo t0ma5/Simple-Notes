@@ -5,7 +5,12 @@
     <color name="default_primary_color">@color/md_red_700</color>
     <color name="default_app_icon_color">@color/md_red_700</color>
     <color name="default_accent_color">@color/md_red_700</color>
-    <color name="default_text_color">@color/theme_light_text_color</color>
-    <color name="default_background_color">#FFFAFAFA</color>
+    <color name="default_text_color">#FFF5F5F5</color>
+    <color name="default_background_color">#FF121212</color>
     <color name="theme_dark_red_primary_color">#FFD32F2F</color>
+    <color name="theme_dark_red_text_color">#FFF5F5F5</color>
+    <color name="theme_dark_red_background_color">#FF121212</color>
+    <color name="note_card_surface">#FF1E1E1E</color>
+    <color name="note_card_muted">#FFBDBDBD</color>
+    <color name="note_card_stroke">#FF333333</color>
 </resources>

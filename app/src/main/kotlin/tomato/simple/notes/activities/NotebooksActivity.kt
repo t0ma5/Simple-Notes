@@ -132,7 +132,7 @@ class NotebooksActivity : SimpleActivity() {
 
     override fun onResume() {
         super.onResume()
-        setupToolbar(binding.notebooksToolbar)
+        setupPrimaryToolbar(binding.notebooksToolbar)
 
         (binding.notebooksList.layoutManager as? GridLayoutManager)?.spanCount = config.notebookColumns
         refreshNotebooks()

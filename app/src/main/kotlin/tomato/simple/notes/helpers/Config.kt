@@ -1,15 +1,18 @@
 package tomato.simple.notes.helpers
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Environment
 import android.view.Gravity
 import com.simplemobiletools.commons.helpers.BaseConfig
-import com.simplemobiletools.commons.helpers.IS_USING_SYSTEM_THEME
 import tomato.simple.notes.models.NoteType
 
 class Config(context: Context) : BaseConfig(context) {
     companion object {
         fun newInstance(context: Context) = Config(context)
+
+        private const val DARK_RED_THEME_REVISION = 2
+        private const val DARK_RED_THEME_REVISION_KEY = "dark_red_theme_revision"
     }
 
     var autosaveNotes: Boolean
@@ -37,18 +40,18 @@ class Config(context: Context) : BaseConfig(context) {
         set(showNotebooks) = prefs.edit().putBoolean(SHOW_NOTEBOOKS, showNotebooks).apply()
 
     fun applyDefaultDarkRedThemeIfNeeded() {
-        if (!prefs.contains(IS_USING_SYSTEM_THEME)) {
-            isUsingSystemTheme = false
-            isUsingAutoTheme = false
-            isUsingSharedTheme = false
-            val resources = context.resources
-            textColor = resources.getColor(com.simplemobiletools.commons.R.color.theme_light_text_color, context.theme)
-            backgroundColor = android.graphics.Color.parseColor("#FFFAFAFA")
-            val red = resources.getColor(com.simplemobiletools.commons.R.color.md_red_700, context.theme)
-            primaryColor = red
-            accentColor = red
-            appIconColor = red
+        if (prefs.getInt(DARK_RED_THEME_REVISION_KEY, 0) >= DARK_RED_THEME_REVISION) {
+            return
         }
+        isUsingSystemTheme = false
+        isUsingAutoTheme = false
+        isUsingSharedTheme = false
+        textColor = Color.parseColor("#FFF5F5F5")
+        backgroundColor = Color.parseColor("#FF121212")
+        val red = context.resources.getColor(com.simplemobiletools.commons.R.color.md_red_700, context.theme)
+        primaryColor = red
+        accentColor = red
+        prefs.edit().putInt(DARK_RED_THEME_REVISION_KEY, DARK_RED_THEME_REVISION).apply()
     }
 
     var showNotePicker: Boolean

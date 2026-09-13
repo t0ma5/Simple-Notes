@@ -5,8 +5,9 @@ Version 6.18.0 *(2026-09-13)*
 ----------------------------
 
  * Keep the toolbar below the phone status bar on Android 15+
+ * Default Dark red theme: dark (not black) page, contrasting cards, red status bar
  * Notes is a two-column card grid by default; the toolbar icon switches to notebooks
- * Notebook cards show a smaller icon, a note count, and a six-dot handle
+ * Notebook cards show a smaller icon, a note count, and a six-dot `:::` handle
  * Every notebook can be deleted; you can add notes in any of them
  * First install no longer creates a fake “General note”
  * List Gson, Markwon, and Kotlinx Serialization in About → Third party licences

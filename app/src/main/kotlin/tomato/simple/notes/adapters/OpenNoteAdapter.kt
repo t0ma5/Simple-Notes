@@ -1,7 +1,6 @@
 package tomato.simple.notes.adapters
 
 import android.content.Context
-import android.graphics.Color
 import android.text.SpannableString
 import android.text.style.StrikethroughSpan
 import android.view.Menu
@@ -14,11 +13,11 @@ import com.simplemobiletools.commons.adapters.MyRecyclerViewAdapter
 import com.simplemobiletools.commons.extensions.beGoneIf
 import com.simplemobiletools.commons.extensions.beVisibleIf
 import com.simplemobiletools.commons.extensions.getColoredDrawableWithColor
-import com.simplemobiletools.commons.extensions.isBlackAndWhiteTheme
-import com.simplemobiletools.commons.helpers.LOWER_ALPHA_INT
 import com.simplemobiletools.commons.views.MyRecyclerView
 import tomato.simple.notes.databinding.OpenNoteItemBinding
+import tomato.simple.notes.extensions.applyNoteCardBackground
 import tomato.simple.notes.extensions.config
+import tomato.simple.notes.extensions.getMutedTextColor
 import tomato.simple.notes.models.ChecklistItem
 import tomato.simple.notes.models.CounterItem
 import tomato.simple.notes.models.Note
@@ -76,7 +75,7 @@ class OpenNoteAdapter(
             val tags = note.formattedTags()
             openNoteItemTags.beVisibleIf(tags.isNotEmpty())
             openNoteItemTags.text = tags
-            openNoteItemTags.setTextColor(textColor)
+            openNoteItemTags.setTextColor(activity.getMutedTextColor())
             openNoteItemText.apply {
                 text = formattedText
                 setTextColor(textColor)
@@ -85,22 +84,7 @@ class OpenNoteAdapter(
     }
 
     private fun View.setupCard() {
-        if (context.isBlackAndWhiteTheme()) {
-            setBackgroundResource(com.simplemobiletools.commons.R.drawable.black_dialog_background)
-        } else {
-            val cardBackgroundColor = if (backgroundColor == Color.BLACK) {
-                Color.WHITE
-            } else {
-                Color.BLACK
-            }
-            val cardBackground = if (context.config.isUsingSystemTheme) {
-                com.simplemobiletools.commons.R.drawable.dialog_you_background
-            } else {
-                com.simplemobiletools.commons.R.drawable.dialog_bg
-            }
-            background =
-                activity.resources.getColoredDrawableWithColor(cardBackground, cardBackgroundColor, LOWER_ALPHA_INT)
-        }
+        applyNoteCardBackground()
     }
 
     private fun Note.getFormattedValue(context: Context): CharSequence? {

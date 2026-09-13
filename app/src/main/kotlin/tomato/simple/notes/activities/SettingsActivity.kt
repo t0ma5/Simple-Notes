@@ -43,7 +43,7 @@ class SettingsActivity : SimpleActivity() {
 
     override fun onResume() {
         super.onResume()
-        setupToolbar(binding.settingsToolbar, NavigationIcon.Arrow)
+        setupPrimaryToolbar(binding.settingsToolbar, NavigationIcon.Arrow)
 
         setupCustomizeColors()
         setupUseEnglish()
@@ -111,7 +111,7 @@ class SettingsActivity : SimpleActivity() {
 
     private fun setupCustomizeColors() {
         binding.settingsColorCustomizationHolder.setOnClickListener {
-            startCustomizationActivity()
+            openColorCustomization()
         }
     }
 
@@ -175,8 +175,14 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun setupShowNotePicker() {
-        NotesHelper(this).getNotes {
-            binding.settingsShowNotePickerHolder.beVisibleIf(it.size > 1)
+        ensureBackgroundThread {
+            val noteCount = notesDB.getNotes().size
+            runOnUiThread {
+                if (isDestroyed || isFinishing) {
+                    return@runOnUiThread
+                }
+                binding.settingsShowNotePickerHolder.beVisibleIf(noteCount > 1)
+            }
         }
 
         binding.settingsShowNotePicker.isChecked = config.showNotePicker
@@ -465,6 +471,9 @@ class SettingsActivity : SimpleActivity() {
 
     private fun setupEmptyRecycleBin() {
         RecycleBinHelper(this).hasItems { hasItems ->
+            if (isDestroyed || isFinishing) {
+                return@hasItems
+            }
             binding.settingsEmptyRecycleBinHolder.beVisibleIf(hasItems)
         }
         binding.settingsEmptyRecycleBinHolder.setOnClickListener {

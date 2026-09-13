@@ -149,7 +149,7 @@ class MainActivity : SimpleActivity() {
 
     override fun onResume() {
         super.onResume()
-        setupToolbar(binding.mainToolbar, if (isTaskRoot) NavigationIcon.None else NavigationIcon.Arrow)
+        setupPrimaryToolbar(binding.mainToolbar, if (isTaskRoot) NavigationIcon.None else NavigationIcon.Arrow)
         if (storedEnableLineWrap != config.enableLineWrap) {
             initViewPager()
         }
@@ -806,7 +806,7 @@ class MainActivity : SimpleActivity() {
 
     private fun launchSettings() {
         hideKeyboard()
-        startActivity(Intent(applicationContext, SettingsActivity::class.java))
+        startActivity(Intent(this, SettingsActivity::class.java))
     }
 
     private fun tryOpenFile() {

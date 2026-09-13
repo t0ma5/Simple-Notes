@@ -24,12 +24,6 @@ import java.io.OutputStream
 class NotesHelper(val context: Context) {
     fun getNotes(callback: (notes: List<Note>) -> Unit) {
         ensureBackgroundThread {
-            // make sure the initial note has enough time to be precreated
-            if (context.config.appRunCount <= 1) {
-                context.notesDB.getNotes()
-                Thread.sleep(200)
-            }
-
             val notes = context.notesDB.getNotes().toMutableList()
             val notesToDelete = mutableListOf<Note>()
             notes.forEach {
@@ -43,9 +37,10 @@ class NotesHelper(val context: Context) {
 
             notes.removeAll(notesToDelete)
             cleanupPlaceholderNotesSync()
+            val remaining = context.notesDB.getNotes()
 
             Handler(Looper.getMainLooper()).post {
-                callback(context.notesDB.getNotes())
+                callback(remaining)
             }
         }
     }
