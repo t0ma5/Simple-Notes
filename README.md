@@ -17,6 +17,17 @@ This is an independent fork of Simple Notes Pro 6.17.4. This fork is not affilia
 
 APKs are published on [GitHub Releases](https://github.com/t0ma5/Simple-Notes/releases) as `Simple-Notes_<version>-FOSS-arm64-v8a.apk` (most phones), `...-armeabi-v7a.apk`, `...-x86_64.apk`, and `...-FOSS-universal.apk` (all ABIs). Push a tag `vX.Y.Z` to attach signed APKs to a release. Every push, pull request, and manual **Build APK** run also uploads the APKs as a workflow artifact.
 
+## What's new in 6.18.0
+
+1. **Read-only notes** — Overflow Make read-only / Allow editing. Blocks typing, checklist checks, and counter buttons. Survives app restart.
+2. **Keyboard** — Opening the keyboard on a long note scrolls the caret into view.
+3. **Paste** — Formatted paste becomes plain text. Composing keyboards (AnySoftKeyboard and similar) still work.
+4. **Widgets** — Settings → Customize widget colors updates every Notes widget, not only the first one.
+5. **Save icon / search** — Saved text notes no longer show Save again after a swipe. In-note search no longer crashes after changing notes.
+6. **Android 16** — compileSdk and targetSdk 36. Toolbar sits below the status bar.
+7. **Notes / notebooks toggle** — Toolbar icon to the right of search switches views, like Gallery folders/files. Notes is the default after install. Notebook cards show a centered icon; the handle opens the same menu as a long-press.
+8. **About licences** — Third party licences now include Gson, Markwon, and Kotlinx Serialization.
+
 ## New features ahead of upstream 6.17.0
 
 - Notebooks: create, rename, delete, pin, reorder, and password-protect collections of notes. Toolbar icon to the right of search switches notebooks vs notes (notes is the default after install). Notebook cards show a centered icon; tapping the handle opens the same menu as a long-press.
@@ -34,6 +45,7 @@ APKs are published on [GitHub Releases](https://github.com/t0ma5/Simple-Notes/re
 - Move checklist items or whole notes between notebooks.
 - Optional encrypted exports.
 - No donation, rate, or “what's new” popups.
+- About → Third party licences lists Gson, Markwon, and Kotlinx Serialization.
 - applicationId and Kotlin packages are `tomato.simple.notes`, so it can sit next to Simple Notes Pro.
 
 Contains no ads or unnecessary permissions. It is fully open source and provides customizable colors. The lack of internet access and encrypted exports gives you more privacy than typical note apps.
