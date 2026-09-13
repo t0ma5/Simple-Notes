@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputType
 import android.text.Selection
 import android.text.TextWatcher
 import android.text.style.UnderlineSpan
@@ -18,6 +19,8 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.viewbinding.ViewBinding
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.views.MyEditText
@@ -28,7 +31,9 @@ import tomato.simple.notes.activities.MainActivity
 import tomato.simple.notes.databinding.FragmentTextBinding
 import tomato.simple.notes.databinding.NoteViewHorizScrollableBinding
 import tomato.simple.notes.databinding.NoteViewStaticBinding
+import tomato.simple.notes.extensions.applyReadOnlyFilters
 import tomato.simple.notes.extensions.config
+import tomato.simple.notes.extensions.enforcePlainText
 import tomato.simple.notes.extensions.getPercentageFontSize
 import tomato.simple.notes.extensions.updateWidgets
 import tomato.simple.notes.helpers.MyMovementMethod
@@ -70,6 +75,7 @@ class TextFragment : NoteFragment() {
                 noteEditText = textNoteView
             }
         }
+        noteEditText.enforcePlainText()
         if (config!!.clickableLinks) {
             noteEditText.apply {
                 linksClickable = true
@@ -166,7 +172,7 @@ class TextFragment : NoteFragment() {
                 setSelection(if (config.placeCursorToEnd) text!!.length else 0)
             }
 
-            if (config.showKeyboard && isMenuVisible && (!note!!.isLocked() || shouldShowLockedContent)) {
+            if (config.showKeyboard && isMenuVisible && !note!!.isReadOnly && (!note!!.isLocked() || shouldShowLockedContent)) {
                 onGlobalLayout {
                     if (activity?.isDestroyed == false) {
                         requestFocus()
@@ -181,6 +187,7 @@ class TextFragment : NoteFragment() {
             } else {
                 imeOptions.removeBit(EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING)
             }
+            updateReadOnlyState(note!!.isReadOnly)
         }
 
         noteEditText.setOnTouchListener { v, event ->
@@ -202,6 +209,57 @@ class TextFragment : NoteFragment() {
         }
 
         checkLockState()
+        setTextWatcher()
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupKeyboardListener()
+    }
+
+    private fun setupKeyboardListener() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            if (insets.isVisible(WindowInsetsCompat.Type.ime()) && ::noteEditText.isInitialized) {
+                noteEditText.post {
+                    noteEditText.bringPointIntoView(noteEditText.selectionEnd)
+                }
+            }
+            insets
+        }
+    }
+
+    override fun updateReadOnlyState(isReadOnly: Boolean) {
+        if (!::noteEditText.isInitialized) {
+            return
+        }
+
+        removeTextWatcher()
+        val selection = noteEditText.selectionEnd
+        noteEditText.apply {
+            val baseInputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            inputType = if (isReadOnly) {
+                baseInputType or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            } else {
+                baseInputType
+            }
+            showSoftInputOnFocus = !isReadOnly
+            isCursorVisible = true
+            isLongClickable = true
+            setTextIsSelectable(true)
+            applyReadOnlyFilters(isReadOnly)
+            imeOptions = if (config?.useIncognitoMode == true) {
+                imeOptions or EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING
+            } else {
+                imeOptions.removeBit(EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING)
+            }
+            if (isReadOnly) {
+                activity?.hideKeyboard(this)
+            }
+            val length = text?.length ?: 0
+            if (length > 0) {
+                setSelection(selection.coerceIn(0, length))
+            }
+        }
         setTextWatcher()
     }
 
@@ -267,6 +325,10 @@ class TextFragment : NoteFragment() {
             return
         }
 
+        if (note!!.isReadOnly) {
+            return
+        }
+
         val newText = getCurrentNoteViewText()
         val oldText = note!!.getNoteStoredValue(requireContext())
         if (newText != null && (newText != oldText || force)) {
@@ -290,6 +352,9 @@ class TextFragment : NoteFragment() {
     }
 
     override fun undo() {
+        if (note?.isReadOnly == true) {
+            return
+        }
         val edit = textHistory.getPrevious() ?: return
 
         val text = noteEditText.editableText
@@ -320,6 +385,9 @@ class TextFragment : NoteFragment() {
     }
 
     override fun redo() {
+        if (note?.isReadOnly == true) {
+            return
+        }
         val edit = textHistory.getNext() ?: return
 
         val text = noteEditText.editableText

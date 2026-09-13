@@ -1,0 +1,9 @@
+* Toolbar sits below the phone status bar on Android 15+
+* Notes is the default home; toolbar icon switches to notebooks
+* Notebook cards show a centered icon; the handle opens the same menu as a long-press
+* About lists Gson, Markwon, and Kotlinx Serialization
+* Read-only mode for text notes, checklists, and counters
+* Keyboard keeps the cursor visible on long notes
+* Paste as plain text without breaking composing keyboards
+* Widget color customization applies to every widget
+* Save icon and in-note search swipe fixes

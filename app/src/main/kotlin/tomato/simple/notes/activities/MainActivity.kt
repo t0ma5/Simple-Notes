@@ -93,7 +93,7 @@ class MainActivity : SimpleActivity() {
         setupOptionsMenu()
         refreshMenuItems()
 
-        updateMaterialActivityViews(binding.mainCoordinator, null, useTransparentNavigation = false, useTopSearchMenu = false)
+        updateMaterialActivityViews(binding.mainCoordinator, null, useTransparentNavigation = true, useTopSearchMenu = false)
 
         searchQueryET = findViewById(com.simplemobiletools.commons.R.id.search_query)
         searchPrevBtn = findViewById(com.simplemobiletools.commons.R.id.search_previous)
@@ -136,6 +136,16 @@ class MainActivity : SimpleActivity() {
         wasInit = true
 
         setupSearchButtons()
+    }
+
+    private fun switchToNotebooks() {
+        if (isSearchActive) {
+            closeSearch()
+        }
+        hideKeyboard()
+        config.showNotebooks = true
+        startActivity(Intent(this, NotebooksActivity::class.java))
+        finish()
     }
 
     override fun onResume() {
@@ -194,12 +204,12 @@ class MainActivity : SimpleActivity() {
 
         binding.mainToolbar.menu.apply {
             findItem(R.id.undo).apply {
-                isVisible = showUndoButton
+                isVisible = showUndoButton && (::mCurrentNote.isInitialized && !mCurrentNote.isReadOnly)
                 icon?.alpha = if (isEnabled) 255 else 127
             }
 
             findItem(R.id.redo).apply {
-                isVisible = showRedoButton
+                isVisible = showRedoButton && (::mCurrentNote.isInitialized && !mCurrentNote.isReadOnly)
                 icon?.alpha = if (isEnabled) 255 else 127
             }
 
@@ -210,12 +220,14 @@ class MainActivity : SimpleActivity() {
             findItem(R.id.unpin_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && mCurrentNote.isPinned())
             findItem(R.id.open_search).isVisible =
                 !isCurrentItemChecklist && !isCurrentItemCounter && (getCurrentFragment() as? TextFragment)?.isMarkdownPreview() != true
-            findItem(R.id.remove_done_items).isVisible = isCurrentItemChecklist && mNotes.isNotEmpty()
-            findItem(R.id.uncheck_all_items).isVisible = isCurrentItemChecklist && mNotes.isNotEmpty()
-            findItem(R.id.sort_checklist).isVisible = isCurrentItemChecklist && mNotes.isNotEmpty()
+            findItem(R.id.remove_done_items).isVisible = isCurrentItemChecklist && mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && !mCurrentNote.isReadOnly)
+            findItem(R.id.uncheck_all_items).isVisible = isCurrentItemChecklist && mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && !mCurrentNote.isReadOnly)
+            findItem(R.id.sort_checklist).isVisible = isCurrentItemChecklist && mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && !mCurrentNote.isReadOnly)
             findItem(R.id.import_folder).isVisible = !isQPlus()
             findItem(R.id.lock_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && !mCurrentNote.isLocked())
             findItem(R.id.unlock_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && mCurrentNote.isLocked())
+            findItem(R.id.make_read_only).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && !mCurrentNote.isReadOnly)
+            findItem(R.id.allow_editing).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && mCurrentNote.isReadOnly)
 
             findItem(R.id.markdown_preview).apply {
                 val textFragment = getCurrentFragment() as? tomato.simple.notes.fragments.TextFragment
@@ -228,7 +240,7 @@ class MainActivity : SimpleActivity() {
 
             saveNoteButton = findItem(R.id.save_note)
             saveNoteButton!!.isVisible =
-                !config.autosaveNotes && showSaveButton && (::mCurrentNote.isInitialized && mCurrentNote.type == NoteType.TYPE_TEXT)
+                !config.autosaveNotes && showSaveButton && (::mCurrentNote.isInitialized && mCurrentNote.type == NoteType.TYPE_TEXT && !mCurrentNote.isReadOnly)
         }
 
         binding.pagerTabStrip.beVisibleIf(mNotes.isNotEmpty())
@@ -243,6 +255,7 @@ class MainActivity : SimpleActivity() {
             val fragment = getCurrentFragment()
             when (menuItem.itemId) {
                 R.id.open_search -> fragment?.handleUnlocking { openSearch() }
+                R.id.switch_to_notebooks -> switchToNotebooks()
                 R.id.open_note -> displayOpenNoteDialog()
                 R.id.save_note -> fragment?.handleUnlocking { saveNote() }
                 R.id.undo -> undo()
@@ -256,6 +269,7 @@ class MainActivity : SimpleActivity() {
                 R.id.cab_create_shortcut -> createShortcut()
                 R.id.lock_note -> lockNote()
                 R.id.unlock_note -> unlockNote()
+                R.id.make_read_only, R.id.allow_editing -> fragment?.handleUnlocking { toggleReadOnly() }
                 R.id.open_file -> tryOpenFile()
                 R.id.import_folder -> openFolder()
                 R.id.export_as_file -> fragment?.handleUnlocking { tryExportAsFile() }
@@ -322,7 +336,11 @@ class MainActivity : SimpleActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         val wantedNoteId = intent.getLongExtra(OPEN_NOTE_ID, -1L)
+        val wantedNotebookId = intent.getLongExtra(NOTEBOOK_ID, -1L)
+        pendingFirstNotePrompt = intent.getBooleanExtra(OPEN_NEW_NOTE_DIALOG, false)
+        shouldDeletePlaceholderAfterFirstRealNote = pendingFirstNotePrompt
         if (wantedNoteId > 0L) {
             NotesHelper(this).getNoteWithId(wantedNoteId) { note ->
                 if (note != null && note.notebookId != currentNotebookId) {
@@ -334,6 +352,11 @@ class MainActivity : SimpleActivity() {
                 }
                 checkIntents(intent)
             }
+        } else if (wantedNotebookId > 0L && wantedNotebookId != currentNotebookId) {
+            currentNotebookId = wantedNotebookId
+            config.currentNotebookId = currentNotebookId
+            initViewPager()
+            checkIntents(intent)
         } else {
             binding.viewPager.currentItem = getWantedNoteIndex(wantedNoteId)
             checkIntents(intent)
@@ -532,13 +555,15 @@ class MainActivity : SimpleActivity() {
                 onPageChangeListener {
                     mCurrentNote = mNotes[it]
                     config.currentNoteId = mCurrentNote.id!!
+                    applyReadOnlyStateToCurrentNote()
                     refreshMenuItems()
                 }
             }
 
-            if (!config.showKeyboard || mCurrentNote.type == NoteType.TYPE_CHECKLIST || mCurrentNote.type == NoteType.TYPE_COUNTER) {
+            if (!config.showKeyboard || mCurrentNote.type == NoteType.TYPE_CHECKLIST || mCurrentNote.type == NoteType.TYPE_COUNTER || mCurrentNote.isReadOnly) {
                 hideKeyboard()
             }
+            applyReadOnlyStateToCurrentNote()
             refreshMenuItems()
 
             if (pendingFirstNotePrompt && mNotes.size == 1 && isPlaceholderNote(mNotes[0])) {
@@ -586,6 +611,9 @@ class MainActivity : SimpleActivity() {
         }
 
         binding.viewPager.onPageChangeListener {
+            searchIndex = 0
+            searchMatches = emptyList()
+
             currentTextFragment?.removeTextWatcher()
             currentNotesView()?.let { noteView ->
                 noteView.text!!.clearBackgroundSpans()
@@ -619,7 +647,7 @@ class MainActivity : SimpleActivity() {
 
             if (searchMatches.isNotEmpty()) {
                 noteView.requestFocus()
-                noteView.setSelection(searchMatches.getOrNull(searchIndex) ?: 0)
+                noteView.safeSetSelection(searchMatches.getOrNull(searchIndex) ?: 0)
             }
 
             searchQueryET.postDelayed({
@@ -659,7 +687,7 @@ class MainActivity : SimpleActivity() {
     private fun selectSearchMatch(editText: MyEditText) {
         if (searchMatches.isNotEmpty()) {
             editText.requestFocus()
-            editText.setSelection(searchMatches.getOrNull(searchIndex) ?: 0)
+            editText.safeSetSelection(searchMatches.getOrNull(searchIndex) ?: 0)
         } else {
             hideKeyboard()
         }
@@ -672,7 +700,7 @@ class MainActivity : SimpleActivity() {
 
         currentNotesView()?.let { noteView ->
             noteView.requestFocus()
-            noteView.setSelection(0)
+            noteView.safeSetSelection(0)
         }
 
         searchQueryET.postDelayed({
@@ -717,6 +745,7 @@ class MainActivity : SimpleActivity() {
             val index = getNoteIndexWithId(id)
             binding.viewPager.currentItem = index
             mCurrentNote = mNotes[index]
+            applyReadOnlyStateToCurrentNote()
         }
     }
 
@@ -1240,7 +1269,13 @@ class MainActivity : SimpleActivity() {
         }
     }
 
-    private fun addTextToCurrentNote(text: String) = getPagerAdapter().appendText(binding.viewPager.currentItem, text)
+    private fun addTextToCurrentNote(text: String) {
+        if (::mCurrentNote.isInitialized && mCurrentNote.isReadOnly) {
+            toast(R.string.note_is_read_only)
+            return
+        }
+        getPagerAdapter().appendText(binding.viewPager.currentItem, text)
+    }
 
     private fun saveCurrentNote(force: Boolean) {
         getPagerAdapter().saveCurrentNote(binding.viewPager.currentItem, force)
@@ -1248,6 +1283,8 @@ class MainActivity : SimpleActivity() {
             mCurrentNote.value = getPagerAdapter().getNoteChecklistItems(binding.viewPager.currentItem) ?: ""
         } else if (mCurrentNote.type == NoteType.TYPE_COUNTER) {
             mCurrentNote.value = getPagerAdapter().getNoteCounterItems(binding.viewPager.currentItem) ?: ""
+        } else {
+            mCurrentNote.value = getCurrentNoteText() ?: mCurrentNote.value
         }
     }
 
@@ -1423,6 +1460,26 @@ class MainActivity : SimpleActivity() {
 
     fun refreshMarkdownMenu() {
         refreshMenuItems()
+    }
+
+    private fun toggleReadOnly() {
+        if (!::mCurrentNote.isInitialized) {
+            return
+        }
+
+        mCurrentNote.isReadOnly = !mCurrentNote.isReadOnly
+        NotesHelper(this).insertOrUpdateNote(mCurrentNote) {
+            mNotes.firstOrNull { it.id == mCurrentNote.id }?.isReadOnly = mCurrentNote.isReadOnly
+            applyReadOnlyStateToCurrentNote()
+            refreshMenuItems()
+        }
+    }
+
+    private fun applyReadOnlyStateToCurrentNote() {
+        if (!::mCurrentNote.isInitialized) {
+            return
+        }
+        getCurrentFragment()?.updateReadOnlyState(mCurrentNote.isReadOnly)
     }
 
     private fun toggleMarkdownPreview() {

@@ -15,6 +15,10 @@ permissions:
   contents: write
   actions: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,37 +36,23 @@ jobs:
 
       - name: Patch Simple-Commons for CI
         run: |
-          python3 << 'PY'
-          from pathlib import Path
-          path = Path("Simple-Commons/gradle/libs.versions.toml")
-          text = path.read_text()
-          replacements = [
-              ('gradlePlugins-agp = "8.1.1"', 'gradlePlugins-agp = "8.6.0"'),
-              # JitPack never built duolingo/rtl-viewpager@940f12724f. Fossify uses this fork.
-              ('rtlViewpager = "940f12724f"', 'rtlViewpager = "2.0.2"'),
-              (
-                  'rtl-viewpager = { module = "com.github.duolingo:rtl-viewpager", version.ref = "rtlViewpager" }',
-                  'rtl-viewpager = { module = "com.github.naveensingh:rtl-viewpager", version.ref = "rtlViewpager" }',
-              ),
-          ]
-          for old, new in replacements:
-              if old not in text:
-                  raise SystemExit(f"patch failed: {old!r} not found")
-              text = text.replace(old, new, 1)
-          path.write_text(text)
-          PY
           python3 scripts/patch_commons.py
-          grep -E 'gradlePlugins-agp|rtlViewpager|rtl-viewpager' Simple-Commons/gradle/libs.versions.toml
+          grep -E 'gradlePlugins-agp|^kotlin =|ksp =|kotlinCompose|rtlViewpager|rtl-viewpager|compileSDK|targetSDK' Simple-Commons/gradle/libs.versions.toml
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
           cache: gradle
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android 16 platform
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platforms;android-36"
 
       - name: Release signing
         env:
@@ -78,20 +68,28 @@ jobs:
           echo "$KEYSTORE_BASE64" | base64 -d > app/keystore.jks
           printf '%s\n' "keyAlias=$KEY_ALIAS" "keyPassword=$KEY_PASSWORD" "storeFile=keystore.jks" "storePassword=$KEYSTORE_PASSWORD" > keystore.properties
 
-      - name: Build Core release APK (arm64)
+      - name: Build Core release APKs
         run: |
           chmod +x gradlew
           ./gradlew assembleCoreRelease --stacktrace --no-daemon
 
-      - name: Name APK Simple-Notes_<version>
+      - name: Name APK Simple-Notes_<version>-FOSS-<abi>
         id: apk
         run: |
           VERSION=$(grep -oP 'app-version-versionName = "\K[^"]+' gradle/libs.versions.toml)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           mkdir -p dist
-          apk=$(find app/build/outputs/apk/core/release -name '*.apk' | head -n 1)
-          test -n "$apk"
-          cp "$apk" "dist/Simple-Notes_${VERSION}.apk"
+          copy_abi() {
+            local abi="$1"
+            local src
+            src=$(find app/build/outputs/apk/core/release -name "*${abi}*.apk" | head -n 1)
+            test -n "$src"
+            cp "$src" "dist/Simple-Notes_${VERSION}-FOSS-${abi}.apk"
+          }
+          copy_abi arm64-v8a
+          copy_abi armeabi-v7a
+          copy_abi x86_64
+          copy_abi universal
           ls -l dist
 
       - name: Upload APK artifact
@@ -105,26 +103,23 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ steps.apk.outputs.version }}
           files: dist/Simple-Notes_*.apk
-          generate_release_notes: false
+          generate_release_notes: true
           body: |
-            ## New features ahead of upstream 6.17.0
+            Release-signed FOSS APKs for applicationId tomato.simple.notes.
+            `Simple-Notes_<version>-FOSS-arm64-v8a.apk` for most phones; `...-armeabi-v7a.apk` for 32-bit ARM; `...-x86_64.apk` for 64-bit emulators; `...-FOSS-universal.apk` has all three ABIs.
+            They can sit next to Play Store Simple Notes Pro. Launcher name is Notes.
 
-            - Notebooks: create, rename, delete, pin, reorder, and password-protect collections of notes.
-            - Search notes and notebooks from the notebooks screen.
-            - Pin individual notes.
-            - Recycle bin for deleted notes and notebooks.
-            - Markdown preview for text notes.
-            - Tags on notes, searchable from the notebooks screen.
-            - Home-screen notebook widget.
-            - Undo and redo for text, checklist, and counter edits.
-            - Uncheck all checklist items, collapse checked items, and sort each checklist independently. The add-item dialog stays open if you tap outside it.
-            - Delete the last remaining note.
-            - Counter notes with colored increment/decrement buttons.
-            - Move checklist items or whole notes between notebooks.
-            - Optional encrypted exports.
-            - No donation, rate, or “what's new” popups.
+            ## New in 6.18.0
 
-            Release-signed arm64-v8a APK (`Simple-Notes_<version>.apk`) for applicationId tomato.simple.notes. It can sit next to Play Store Simple Notes Pro.
+            1. **Read-only notes** — Overflow Make read-only / Allow editing. Blocks typing, checklist checks, and counter buttons. Survives app restart.
+            2. **Keyboard** — Opening the keyboard on a long note scrolls the caret into view.
+            3. **Paste** — Formatted paste becomes plain text. Composing keyboards (AnySoftKeyboard and similar) still work.
+            4. **Widgets** — Settings → Customize widget colors updates every Notes widget, not only the first one.
+            5. **Save icon / search** — Saved text notes no longer show Save again after a swipe. In-note search no longer crashes after changing notes.
+            6. **Android 16** — compileSdk and targetSdk 36. Toolbar sits below the status bar.
+            7. **Notes / notebooks toggle** — Toolbar icon to the right of search switches views, like Gallery folders/files. Notes is the default after install. Notebook cards show a centered icon; the handle opens the same menu as a long-press.
+            8. **About licences** — Third party licences now include Gson, Markwon, and Kotlinx Serialization.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

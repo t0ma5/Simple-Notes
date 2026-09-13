@@ -80,6 +80,8 @@ abstract class NoteFragment : Fragment() {
 
     open fun isRedoAvailable() = false
 
+    open fun updateReadOnlyState(isReadOnly: Boolean) {}
+
     protected fun notifyHistoryChanged() {
         (activity as? MainActivity)?.currentNoteTextChanged(note?.value ?: "", isUndoAvailable(), isRedoAvailable())
     }

@@ -1,4 +1,5 @@
 import java.io.FileInputStream
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.konan.properties.Properties
 
@@ -11,8 +12,10 @@ plugins {
 }
 
 base {
-    archivesName.set("notes")
+    archivesName.set("notes-${libs.versions.app.version.versionCode.get()}")
 }
+
+val localArm64 = providers.gradleProperty("localArm64").orNull.equals("true", ignoreCase = true)
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
@@ -71,8 +74,13 @@ android {
         abi {
             isEnable = true
             reset()
-            include("arm64-v8a")
-            isUniversalApk = false
+            if (localArm64) {
+                include("arm64-v8a")
+                isUniversalApk = false
+            } else {
+                include("arm64-v8a", "armeabi-v7a", "x86_64")
+                isUniversalApk = true
+            }
         }
     }
 
@@ -91,10 +99,6 @@ android {
         val currentJavaVersionFromLibs = JavaVersion.valueOf(libs.versions.app.build.javaVersion.get().toString())
         sourceCompatibility = currentJavaVersionFromLibs
         targetCompatibility = currentJavaVersionFromLibs
-    }
-
-    tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = project.libs.versions.app.build.kotlinJVMTarget.get()
     }
 
     namespace = libs.versions.app.version.appId.get()
@@ -120,4 +124,30 @@ dependencies {
 
     implementation(libs.bundles.room)
     ksp(libs.androidx.room.compiler)
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
+}
+
+tasks.configureEach {
+    if (name != "assembleCoreRelease") {
+        return@configureEach
+    }
+    doLast {
+        val version = libs.versions.app.version.versionName.get()
+        val dir = layout.buildDirectory.dir("outputs/apk/core/release").get().asFile
+        val abis = if (localArm64) listOf("arm64-v8a") else listOf("arm64-v8a", "armeabi-v7a", "x86_64", "universal")
+        abis.forEach { abi ->
+            val dest = dir.resolve("Simple-Notes_${version}-FOSS-${abi}.apk")
+            val src = dir.listFiles()
+                ?.filter { it.isFile && it.extension == "apk" && it.name.contains(abi) }
+                ?.minByOrNull { if (it.name == dest.name) 0 else 1 }
+                ?: error("No $abi APK in $dir")
+            if (src.canonicalFile != dest.canonicalFile) {
+                src.copyTo(dest, overwrite = true)
+                src.delete()
+            }
+        }
+    }
 }

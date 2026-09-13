@@ -281,10 +281,12 @@ class SettingsActivity : SimpleActivity() {
 
     private fun setupCustomizeWidgetColors() {
         var widgetToCustomize: Widget? = null
+        var allWidgetIds = intArrayOf()
 
         binding.settingsWidgetColorCustomizationHolder.setOnClickListener {
             Intent(this, WidgetConfigureActivity::class.java).apply {
                 putExtra(IS_CUSTOMIZING_COLORS, true)
+                putExtra(ALL_WIDGET_IDS, allWidgetIds)
 
                 widgetToCustomize?.apply {
                     putExtra(CUSTOMIZED_WIDGET_ID, widgetId)
@@ -301,6 +303,7 @@ class SettingsActivity : SimpleActivity() {
 
         ensureBackgroundThread {
             val widgets = widgetsDB.getWidgets().filter { it.widgetId != 0 }
+            allWidgetIds = widgets.map { it.widgetId }.toIntArray()
             if (widgets.size == 1) {
                 widgetToCustomize = widgets.first()
             }

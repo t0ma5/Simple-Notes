@@ -1,0 +1,5 @@
+* Read-only mode for text notes, checklists, and counters
+* Keyboard keeps the cursor visible on long notes
+* Paste as plain text without breaking composing keyboards
+* Widget color customization applies to every widget
+* Save icon and in-note search swipe fixes

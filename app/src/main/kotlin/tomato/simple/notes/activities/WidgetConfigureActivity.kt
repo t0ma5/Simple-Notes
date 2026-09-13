@@ -25,6 +25,7 @@ import tomato.simple.notes.adapters.CounterAdapter
 import tomato.simple.notes.databinding.WidgetConfigBinding
 import tomato.simple.notes.extensions.config
 import tomato.simple.notes.extensions.getPercentageFontSize
+import tomato.simple.notes.extensions.updateWidgets
 import tomato.simple.notes.extensions.widgetsDB
 import tomato.simple.notes.helpers.*
 import tomato.simple.notes.models.ChecklistItem
@@ -43,6 +44,7 @@ class WidgetConfigureActivity : SimpleActivity() {
     private var mIsCustomizingColors = false
     private var mShowTitle = false
     private var mNotes = listOf<Note>()
+    private var mAllWidgetIds = intArrayOf()
     private val binding by viewBinding(WidgetConfigBinding::inflate)
 
     public override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,6 +111,7 @@ class WidgetConfigureActivity : SimpleActivity() {
 
         updateTextColor()
         mIsCustomizingColors = extras?.getBoolean(IS_CUSTOMIZING_COLORS) ?: false
+        mAllWidgetIds = extras?.getIntArray(ALL_WIDGET_IDS) ?: intArrayOf()
         binding.notesPickerHolder.beVisibleIf(!mIsCustomizingColors)
         binding.textNoteViewTitle.beGoneIf(!mShowTitle)
 
@@ -213,6 +216,18 @@ class WidgetConfigureActivity : SimpleActivity() {
     }
 
     private fun saveConfig() {
+        if (mIsCustomizingColors) {
+            ensureBackgroundThread {
+                widgetsDB.updateWidgetColors(mBgColor, mTextColor)
+                runOnUiThread {
+                    storeWidgetBackground()
+                    requestWidgetUpdate()
+                    finishWithResult()
+                }
+            }
+            return
+        }
+
         if (mCurrentNoteId == 0L) {
             finish()
             return
@@ -234,7 +249,10 @@ class WidgetConfigureActivity : SimpleActivity() {
 
         storeWidgetBackground()
         requestWidgetUpdate()
+        finishWithResult()
+    }
 
+    private fun finishWithResult() {
         Intent().apply {
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mWidgetId)
             setResult(Activity.RESULT_OK, this)
@@ -250,10 +268,12 @@ class WidgetConfigureActivity : SimpleActivity() {
     }
 
     private fun requestWidgetUpdate() {
+        val widgetIds = if (mAllWidgetIds.isNotEmpty()) mAllWidgetIds else intArrayOf(mWidgetId)
         Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE, null, this, MyWidgetProvider::class.java).apply {
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(mWidgetId))
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
             sendBroadcast(this)
         }
+        updateWidgets()
     }
 
     private fun updateBackgroundColor() {

@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import com.simplemobiletools.commons.activities.BaseSimpleActivity
 import com.simplemobiletools.commons.adapters.MyRecyclerViewAdapter
 import com.simplemobiletools.commons.extensions.applyColorFilter
+import com.simplemobiletools.commons.extensions.beVisibleIf
 import com.simplemobiletools.commons.views.MyRecyclerView
 import tomato.simple.notes.R
 import tomato.simple.notes.databinding.ItemCounterBinding
@@ -19,7 +20,8 @@ class CounterAdapter(
     recyclerView: MyRecyclerView,
     itemClick: (Any) -> Unit,
     private val plusClick: (CounterItem, Int) -> Unit,
-    private val minusClick: (CounterItem, Int) -> Unit
+    private val minusClick: (CounterItem, Int) -> Unit,
+    private val readOnly: Boolean = false
 ) : MyRecyclerViewAdapter(activity, recyclerView, itemClick) {
 
     override fun getActionMenuId() = 0
@@ -71,9 +73,13 @@ class CounterAdapter(
 
             counterPlus.applyColorFilter(resources.getColor(com.simplemobiletools.commons.R.color.md_green_700))
             counterMinus.applyColorFilter(resources.getColor(com.simplemobiletools.commons.R.color.md_red_700))
+            counterPlus.beVisibleIf(!readOnly)
+            counterMinus.beVisibleIf(!readOnly)
+            counterPlus.isEnabled = !readOnly
+            counterMinus.isEnabled = !readOnly
 
-            counterPlus.setOnClickListener { plusClick(counterItem, position) }
-            counterMinus.setOnClickListener { minusClick(counterItem, position) }
+            counterPlus.setOnClickListener { if (!readOnly) plusClick(counterItem, position) }
+            counterMinus.setOnClickListener { if (!readOnly) minusClick(counterItem, position) }
         }
     }
 }

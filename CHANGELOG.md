@@ -1,6 +1,20 @@
 Changelog
 ==========
 
+Version 6.18.0 *(2026-09-13)*
+----------------------------
+
+ * Keep the toolbar below the phone status bar on Android 15+
+ * Notes is the default home; the toolbar icon to the right of search switches to notebooks
+ * Notebook cards show a centered icon; tapping the handle opens the same menu as a long-press
+ * List Gson, Markwon, and Kotlinx Serialization in About → Third party licences
+ * Added read-only mode for text notes, checklists, and counters
+ * Keep the cursor visible when the keyboard opens on long notes
+ * Paste as plain text without dropping composing keyboards
+ * Apply widget colors to every home-screen widget at once
+ * Keep the Save icon hidden after saving a text note and swiping away
+ * Avoid a crash when searching then swiping to another note
+
 Version 6.17.0 *(2023-09-19)*
 ----------------------------
 

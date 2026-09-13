@@ -42,12 +42,24 @@
         tools:text="Notebook" />
 
     <ImageView
+        android:id="@+id/notebook_icon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_centerInParent="true"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_notebooks_vector" />
+
+    <ImageView
         android:id="@+id/notebook_drag_handle"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:importantForAccessibility="no"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:contentDescription="@string/notebook_actions"
+        android:focusable="true"
+        android:padding="8dp"
         android:src="@drawable/ic_drag_handle_vector" />
 
 </tomato.simple.notes.views.SquareRelativeLayout>

@@ -1,6 +1,9 @@
 package tomato.simple.notes.activities
 
 import com.simplemobiletools.commons.activities.BaseSimpleActivity
+import com.simplemobiletools.commons.helpers.LICENSE_GSON
+import com.simplemobiletools.commons.helpers.LICENSE_KOTLINX_SERIALIZATION
+import com.simplemobiletools.commons.helpers.LICENSE_MARKWON
 import com.simplemobiletools.commons.helpers.LICENSE_RTL
 import com.simplemobiletools.commons.models.FAQItem
 import tomato.simple.notes.BuildConfig
@@ -32,7 +35,7 @@ open class SimpleActivity : BaseSimpleActivity() {
     override fun getAppLauncherName() = getString(R.string.app_launcher_name)
 
     fun launchAbout() {
-        val licenses = LICENSE_RTL
+        val licenses = LICENSE_RTL or LICENSE_GSON or LICENSE_MARKWON or LICENSE_KOTLINX_SERIALIZATION
         val faqItems = arrayListOf(
             FAQItem(R.string.faq_1_title, R.string.faq_1_text),
             FAQItem(com.simplemobiletools.commons.R.string.faq_1_title_commons, com.simplemobiletools.commons.R.string.faq_1_text_commons),
@@ -41,6 +44,6 @@ open class SimpleActivity : BaseSimpleActivity() {
             faqItems.add(FAQItem(com.simplemobiletools.commons.R.string.faq_2_title_commons, com.simplemobiletools.commons.R.string.faq_2_text_commons))
             faqItems.add(FAQItem(com.simplemobiletools.commons.R.string.faq_6_title_commons, com.simplemobiletools.commons.R.string.faq_6_text_commons))
         }
-        startAboutActivity(R.string.app_name, licenses, BuildConfig.VERSION_NAME, faqItems, true)
+        startAboutActivity(R.string.app_name, licenses, "${BuildConfig.VERSION_NAME} (Sept 2026)", faqItems, true)
     }
 }

@@ -70,6 +70,10 @@ class NotesHelper(val context: Context) {
 
     fun getNotesInNotebook(notebookId: Long, callback: (notes: List<Note>) -> Unit) {
         ensureBackgroundThread {
+            if (notebookId == 1L) {
+                ensureDefaultNotebookExistsSync()
+            }
+
             val notes = context.notesDB.getNotesInNotebook(notebookId).toMutableList()
 
             if (notes.isEmpty() && notebookId == 1L) {
@@ -93,6 +97,20 @@ class NotesHelper(val context: Context) {
 
             Handler(Looper.getMainLooper()).post {
                 callback(notes)
+            }
+        }
+    }
+
+    private fun ensureDefaultNotebookExistsSync() {
+        val generalNote = context.resources.getString(R.string.general_note)
+        val existingNotebook = context.notebooksDB.getNotebookWithId(1L)
+        when {
+            existingNotebook == null -> {
+                context.notebooksDB.insertOrUpdate(Notebook(id = 1L, title = generalNote, protectionType = PROTECTION_NONE, protectionHash = ""))
+            }
+            existingNotebook.title != generalNote -> {
+                existingNotebook.title = generalNote
+                context.notebooksDB.insertOrUpdate(existingNotebook)
             }
         }
     }

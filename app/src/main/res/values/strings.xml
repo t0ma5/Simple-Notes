@@ -3,8 +3,13 @@
     <string name="app_name">Simple Notes</string>
     <string name="app_launcher_name">Notes</string>
     <string name="about_footer"></string>
+    <string name="history">History</string>
+    <string name="about_history_text">Simple-Notes (GPL-3.0) was my favorite FOSS notes app until the project was sold to a shady Israeli company named ZipoApps in 2023. I forked it to keep it alive, FOSS and updated. I will release new versions as long as I have time and energy. Code contributions on Github are very welcome :)</string>
     <string name="markdown_preview">Markdown preview</string>
     <string name="edit_note">Edit</string>
+    <string name="make_read_only">Make read-only</string>
+    <string name="allow_editing">Allow editing</string>
+    <string name="note_is_read_only">This note is read-only</string>
     <string name="tags">Tags</string>
     <string name="edit_tags">Edit tags</string>
     <string name="tags_hint">Comma-separated, e.g. work, ideas</string>
@@ -27,6 +32,9 @@
     <string name="rename_note">Rename note</string>
     <string name="general_note">General note</string>
     <string name="notebooks">Notebooks</string>
+    <string name="notebook_actions">Notebook actions</string>
+    <string name="switch_to_notebooks">Switch to notebooks</string>
+    <string name="switch_to_notes">Switch to notes</string>
     <string name="new_notebook">New notebook</string>
     <string name="rename_notebook">Rename notebook</string>
     <string name="pin_notebook">Pin notebook</string>

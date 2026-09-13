@@ -3,8 +3,10 @@ package tomato.simple.notes.adapters
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import kotlin.math.hypot
 import com.simplemobiletools.commons.extensions.applyColorFilter
 import com.simplemobiletools.commons.extensions.getColoredDrawableWithColor
 import com.simplemobiletools.commons.extensions.getProperPrimaryColor
@@ -21,7 +23,11 @@ class NotebooksAdapter(
     private val itemsReordered: (List<Notebook>) -> Unit,
 ) : RecyclerView.Adapter<NotebooksAdapter.ViewHolder>() {
 
-    class ViewHolder(val binding: ItemNotebookBinding) : RecyclerView.ViewHolder(binding.root)
+    class ViewHolder(val binding: ItemNotebookBinding) : RecyclerView.ViewHolder(binding.root) {
+        var handleDragStarted = false
+        var handleDownRawX = 0f
+        var handleDownRawY = 0f
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemNotebookBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -32,6 +38,7 @@ class NotebooksAdapter(
         val notebook = notebooks[position]
         holder.binding.apply {
             notebookTitle.text = notebook.title
+            notebookIcon.applyColorFilter(root.context.getProperPrimaryColor())
             notebookLockIcon.visibility = if (notebook.isLocked()) android.view.View.VISIBLE else android.view.View.GONE
             if (notebook.isLocked()) {
                 notebookLockIcon.setImageDrawable(
@@ -49,11 +56,31 @@ class NotebooksAdapter(
             }
 
             notebookDragHandle.applyColorFilter(root.context.getProperPrimaryColor())
+            val touchSlop = ViewConfiguration.get(root.context).scaledTouchSlop
             notebookDragHandle.setOnTouchListener { _, event ->
-                if (event.action == MotionEvent.ACTION_DOWN) {
-                    dragStart(holder)
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        holder.handleDragStarted = false
+                        holder.handleDownRawX = event.rawX
+                        holder.handleDownRawY = event.rawY
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        if (!holder.handleDragStarted) {
+                            val dx = event.rawX - holder.handleDownRawX
+                            val dy = event.rawY - holder.handleDownRawY
+                            if (hypot(dx.toDouble(), dy.toDouble()) > touchSlop) {
+                                holder.handleDragStarted = true
+                                dragStart(holder)
+                            }
+                        }
+                    }
                 }
                 false
+            }
+            notebookDragHandle.setOnClickListener {
+                if (!holder.handleDragStarted) {
+                    itemLongClick(notebook)
+                }
             }
 
             root.setOnClickListener { itemClick(notebook) }

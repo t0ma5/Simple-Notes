@@ -25,7 +25,7 @@ class RecycleBinActivity : SimpleActivity() {
         isMaterialActivity = true
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        updateMaterialActivityViews(binding.recycleBinCoordinator, null, useTransparentNavigation = false, useTopSearchMenu = false)
+        updateMaterialActivityViews(binding.recycleBinCoordinator, binding.recycleBinList, useTransparentNavigation = true, useTopSearchMenu = false)
 
         adapter = RecycleBinAdapter(emptyList(), restoreClick = { restoreItem(it) }, deleteClick = { deleteItem(it) })
         binding.recycleBinList.layoutManager = LinearLayoutManager(this)

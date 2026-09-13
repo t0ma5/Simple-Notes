@@ -63,6 +63,9 @@ class CounterFragment : NoteFragment() {
                 adjustedPrimaryColor.getContrastColor()
             )
             setOnClickListener {
+                if (note?.isReadOnly == true) {
+                    return@setOnClickListener
+                }
                 showNewItemDialog()
             }
         }
@@ -72,6 +75,9 @@ class CounterFragment : NoteFragment() {
             setTextColor(adjustedPrimaryColor)
             underlineText()
             setOnClickListener {
+                if (note?.isReadOnly == true) {
+                    return@setOnClickListener
+                }
                 showNewItemDialog()
             }
         }
@@ -112,16 +118,25 @@ class CounterFragment : NoteFragment() {
         }
 
         binding.apply {
+            val canEdit = (!note!!.isLocked() || shouldShowLockedContent) && !note!!.isReadOnly
             counterContentHolder.beVisibleIf(!note!!.isLocked() || shouldShowLockedContent)
-            counterFab.beVisibleIf(!note!!.isLocked() || shouldShowLockedContent)
+            counterFab.beVisibleIf(canEdit)
             setupLockedViews(this.toCommonBinding(), note!!)
+        }
+    }
+
+    override fun updateReadOnlyState(isReadOnly: Boolean) {
+        note?.isReadOnly = isReadOnly
+        if (::binding.isInitialized) {
+            checkLockState()
+            setupAdapter()
         }
     }
 
     private fun updateUIVisibility() {
         binding.apply {
             fragmentPlaceholder.beVisibleIf(items.isEmpty())
-            fragmentPlaceholder2.beVisibleIf(items.isEmpty())
+            fragmentPlaceholder2.beVisibleIf(items.isEmpty() && note?.isReadOnly != true)
             counterList.beVisibleIf(items.isNotEmpty())
         }
     }
@@ -154,13 +169,19 @@ class CounterFragment : NoteFragment() {
             items = items,
             recyclerView = binding.counterList,
             itemClick = {},
-            plusClick = { item, position ->
+            plusClick = plusClick@{ item, position ->
+                if (note?.isReadOnly == true) {
+                    return@plusClick
+                }
                 captureHistory()
                 item.count++
                 saveNote(refreshIndex = position)
                 context?.updateWidgets()
             },
-            minusClick = { item, position ->
+            minusClick = minusClick@{ item, position ->
+                if (note?.isReadOnly == true) {
+                    return@minusClick
+                }
                 if (item.count > 0) {
                     captureHistory()
                     item.count--
@@ -182,7 +203,8 @@ class CounterFragment : NoteFragment() {
                         context?.updateWidgets()
                     }
                 }
-            }
+            },
+            readOnly = note?.isReadOnly == true
         ).apply {
             binding.counterList.adapter = this
         }

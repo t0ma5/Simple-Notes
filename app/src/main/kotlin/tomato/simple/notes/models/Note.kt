@@ -29,7 +29,8 @@ data class Note(
     @ColumnInfo(name = "protection_hash") var protectionHash: String,
     @ColumnInfo(name = "pinned", defaultValue = "0") var pinned: Int = 0,
     @ColumnInfo(name = "deleted_ts", defaultValue = "0") var deletedTs: Long = 0L,
-    @ColumnInfo(name = "tags", defaultValue = "") var tags: String = ""
+    @ColumnInfo(name = "tags", defaultValue = "") var tags: String = "",
+    @ColumnInfo(name = "is_read_only", defaultValue = "0") var isReadOnly: Boolean = false
 ) {
     @Ignore
     var notebookTitle: String? = null

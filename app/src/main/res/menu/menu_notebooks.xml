@@ -9,6 +9,12 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/switch_to_notes"
+        android:icon="@drawable/ic_notes_vector"
+        android:title="@string/switch_to_notes"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/filter_by_tag"
         android:title="@string/filter_by_tag"
         app:showAsAction="never" />

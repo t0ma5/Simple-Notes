@@ -44,12 +44,16 @@ class NotebooksActivity : SimpleActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        updateMaterialActivityViews(binding.notebooksCoordinator, null, useTransparentNavigation = false, useTopSearchMenu = false)
+        updateMaterialActivityViews(binding.notebooksCoordinator, null, useTransparentNavigation = true, useTopSearchMenu = false)
 
         binding.notebooksToolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.search -> {
                     toggleSearch()
+                    true
+                }
+                R.id.switch_to_notes -> {
+                    switchToNotes()
                     true
                 }
                 R.id.filter_by_tag -> {
@@ -138,6 +142,19 @@ class NotebooksActivity : SimpleActivity() {
         }
         RecycleBinHelper(this).emptyOldItems()
         updateTextColors(binding.notebooksCoordinator)
+    }
+
+    private fun switchToNotes() {
+        if (searchVisible) {
+            toggleSearch()
+        }
+        hideKeyboard()
+        config.showNotebooks = false
+        Intent(this, MainActivity::class.java).apply {
+            putExtra(NOTEBOOK_ID, config.currentNotebookId)
+            startActivity(this)
+        }
+        finish()
     }
 
     private fun ensureDefaultNotebookExists(callback: () -> Unit) {

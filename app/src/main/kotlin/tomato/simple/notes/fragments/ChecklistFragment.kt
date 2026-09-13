@@ -116,6 +116,9 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
             )
 
             setOnClickListener {
+                if (note?.isReadOnly == true) {
+                    return@setOnClickListener
+                }
                 showNewItemDialog()
                 (binding.checklistList.adapter as? ChecklistAdapter)?.finishActMode()
             }
@@ -126,6 +129,9 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
             setTextColor(adjustedPrimaryColor)
             underlineText()
             setOnClickListener {
+                if (note?.isReadOnly == true) {
+                    return@setOnClickListener
+                }
                 showNewItemDialog()
             }
         }
@@ -137,9 +143,18 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
         }
 
         binding.apply {
+            val canEdit = (!note!!.isLocked() || shouldShowLockedContent) && !note!!.isReadOnly
             checklistContentHolder.beVisibleIf(!note!!.isLocked() || shouldShowLockedContent)
-            checklistFab.beVisibleIf(!note!!.isLocked() || shouldShowLockedContent)
+            checklistFab.beVisibleIf(canEdit)
             setupLockedViews(this.toCommonBinding(), note!!)
+        }
+    }
+
+    override fun updateReadOnlyState(isReadOnly: Boolean) {
+        note?.isReadOnly = isReadOnly
+        if (::binding.isInitialized) {
+            checkLockState()
+            setupAdapter()
         }
     }
 
@@ -182,14 +197,18 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
             items = displayedItems,
             listener = this,
             recyclerView = binding.checklistList,
-            showIcons = true,
-            noteId = noteId
+            showIcons = note?.isReadOnly != true,
+            noteId = noteId,
+            readOnly = note?.isReadOnly == true
         ) { item ->
             val clickedNote = item as ChecklistItem
             if (clickedNote.isSectionHeader()) {
                 val collapsed = ctx.config.getCheckedItemsCollapsed(noteId)
                 ctx.config.saveCheckedItemsCollapsed(noteId, !collapsed)
                 setupAdapter()
+                return@ChecklistAdapter
+            }
+            if (note?.isReadOnly == true) {
                 return@ChecklistAdapter
             }
             captureHistory()
@@ -278,7 +297,7 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
         val isEmpty = persistedItems().isEmpty()
         binding.apply {
             fragmentPlaceholder.beVisibleIf(isEmpty)
-            fragmentPlaceholder2.beVisibleIf(isEmpty)
+            fragmentPlaceholder2.beVisibleIf(isEmpty && note?.isReadOnly != true)
             checklistList.beVisibleIf(!isEmpty)
         }
     }
@@ -286,11 +305,17 @@ class ChecklistFragment : NoteFragment(), ChecklistItemsListener {
     fun getChecklistItems() = Gson().toJson(persistedItems())
 
     override fun saveChecklist(callback: () -> Unit) {
+        if (note?.isReadOnly == true) {
+            return
+        }
         syncFromDisplayed()
         saveNote(callback = callback)
     }
 
     override fun onItemsReordered(reorderedItems: List<ChecklistItem>) {
+        if (note?.isReadOnly == true) {
+            return
+        }
         syncFromDisplayed(reorderedItems)
     }
 

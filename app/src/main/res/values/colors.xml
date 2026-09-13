@@ -2,4 +2,7 @@
 <resources>
     <color name="color_primary">@color/md_red_700</color>
     <color name="color_primary_dark">#B71C1C</color>
+    <color name="default_primary_color">@color/md_red_700</color>
+    <color name="default_app_icon_color">@color/md_red_700</color>
+    <color name="default_accent_color">@color/md_red_700</color>
 </resources>

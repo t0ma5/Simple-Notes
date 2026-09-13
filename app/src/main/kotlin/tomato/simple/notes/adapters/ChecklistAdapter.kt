@@ -38,6 +38,7 @@ class ChecklistAdapter(
     recyclerView: MyRecyclerView,
     val showIcons: Boolean,
     private val noteId: Long,
+    private val readOnly: Boolean = false,
     itemClick: (Any) -> Unit
 ) : MyRecyclerViewAdapter(activity, recyclerView, itemClick), ItemTouchHelperContract {
 
@@ -47,20 +48,24 @@ class ChecklistAdapter(
     private var startReorderDragListener: StartReorderDragListener
 
     init {
-        setupDragListener(true)
+        setupDragListener(!readOnly)
         initDrawables()
 
-        touchHelper = ItemTouchHelper(ItemMoveCallback(this))
-        touchHelper!!.attachToRecyclerView(recyclerView)
+        if (!readOnly) {
+            touchHelper = ItemTouchHelper(ItemMoveCallback(this))
+            touchHelper!!.attachToRecyclerView(recyclerView)
+        }
 
         startReorderDragListener = object : StartReorderDragListener {
             override fun requestDrag(viewHolder: RecyclerView.ViewHolder) {
-                touchHelper?.startDrag(viewHolder)
+                if (!readOnly) {
+                    touchHelper?.startDrag(viewHolder)
+                }
             }
         }
     }
 
-    override fun getActionMenuId() = R.menu.cab_checklist
+    override fun getActionMenuId() = if (readOnly) 0 else R.menu.cab_checklist
 
     override fun actionItemPressed(id: Int) {
         if (selectedKeys.isEmpty()) {
@@ -76,9 +81,9 @@ class ChecklistAdapter(
         }
     }
 
-    override fun getSelectableItemCount() = items.count { !it.isSectionHeader() }
+    override fun getSelectableItemCount() = if (readOnly) 0 else items.count { !it.isSectionHeader() }
 
-    override fun getIsItemSelectable(position: Int) = items.getOrNull(position)?.isSectionHeader() != true
+    override fun getIsItemSelectable(position: Int) = !readOnly && items.getOrNull(position)?.isSectionHeader() != true
 
     override fun getItemSelectionKey(position: Int) = items.getOrNull(position)?.id
 

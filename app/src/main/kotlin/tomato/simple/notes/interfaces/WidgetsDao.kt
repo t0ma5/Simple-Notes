@@ -25,4 +25,7 @@ interface WidgetsDao {
 
     @Query("DELETE FROM widgets WHERE notebook_id = :notebookId")
     fun deleteNotebookWidgets(notebookId: Long)
+
+    @Query("UPDATE widgets SET widget_bg_color = :bgColor, widget_text_color = :textColor")
+    fun updateWidgetColors(bgColor: Int, textColor: Int)
 }
