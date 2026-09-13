@@ -38,8 +38,10 @@ class NewNotebookDialog(val activity: Activity, title: String? = null, callback:
                                         protectionType = PROTECTION_NONE,
                                         protectionHash = ""
                                     )
-                                    callback(notebook)
-                                    alertDialog.dismiss()
+                                    activity.runOnUiThread {
+                                        callback(notebook)
+                                        alertDialog.dismiss()
+                                    }
                                 }
                             }
                         }

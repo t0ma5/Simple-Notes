@@ -25,12 +25,12 @@ APKs are published on [GitHub Releases](https://github.com/t0ma5/Simple-Notes/re
 4. **Widgets** — Settings → Customize widget colors updates every Notes widget, not only the first one.
 5. **Save icon / search** — Saved text notes no longer show Save again after a swipe. In-note search no longer crashes after changing notes.
 6. **Android 16** — compileSdk and targetSdk 36. Toolbar sits below the status bar.
-7. **Notes / notebooks toggle** — Toolbar icon to the right of search switches views, like Gallery folders/files. Notes is the default after install. Notebook cards show a centered icon; the handle opens the same menu as a long-press.
+7. **Notes / notebooks** — Toolbar icon switches a two-column notes card grid and the notebooks grid. Notes is the default after install. Notebook cards show a smaller icon, a note count, and a six-dot handle that opens the same menu as a long-press. Every notebook can be deleted; you can add notes in any of them. First install no longer creates a fake “General note”.
 8. **About licences** — Third party licences now include Gson, Markwon, and Kotlinx Serialization.
 
 ## New features ahead of upstream 6.17.0
 
-- Notebooks: create, rename, delete, pin, reorder, and password-protect collections of notes. Toolbar icon to the right of search switches notebooks vs notes (notes is the default after install). Notebook cards show a centered icon; tapping the handle opens the same menu as a long-press.
+- Notebooks: create, rename, delete, pin, reorder, and password-protect collections of notes. Toolbar icon to the right of search switches notebooks vs a two-column notes card grid (notes is the default after install). Notebook cards show a centered icon and note count; tapping the handle opens the same menu as a long-press.
 - Search notes and notebooks from the notebooks screen.
 - Pin individual notes.
 - Recycle bin for deleted notes and notebooks.

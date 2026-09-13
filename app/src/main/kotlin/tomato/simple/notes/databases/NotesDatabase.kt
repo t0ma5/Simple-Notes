@@ -14,7 +14,6 @@ import tomato.simple.notes.interfaces.NotesDao
 import tomato.simple.notes.interfaces.WidgetsDao
 import tomato.simple.notes.models.Notebook
 import tomato.simple.notes.models.Note
-import tomato.simple.notes.models.NoteType
 import tomato.simple.notes.models.Widget
 import java.util.concurrent.Executors
 
@@ -65,19 +64,10 @@ abstract class NotesDatabase : RoomDatabase() {
 
         private fun insertFirstNote(context: Context) {
             Executors.newSingleThreadScheduledExecutor().execute {
+                val defaultNotebookTitle = context.getString(R.string.app_launcher_name)
                 db!!.openHelper.writableDatabase.execSQL(
                     "INSERT OR IGNORE INTO notebooks(id, title, protection_type, protection_hash, pinned, sort_order) VALUES(1, ?, $PROTECTION_NONE, '', 0, 0)",
-                    arrayOf(context.getString(R.string.general_note))
-                )
-
-                val generalNote = context.resources.getString(R.string.general_note)
-                db!!.openHelper.writableDatabase.execSQL(
-                    """
-                    INSERT INTO notes (notebook_id, title, value, type, path, protection_type, protection_hash, pinned, deleted_ts, tags)
-                    SELECT 1, ?, '', ?, '', $PROTECTION_NONE, '', 0, 0, ''
-                    WHERE NOT EXISTS (SELECT 1 FROM notes WHERE notebook_id = 1 AND deleted_ts = 0)
-                    """.trimIndent(),
-                    arrayOf(generalNote, NoteType.TYPE_TEXT.value)
+                    arrayOf(defaultNotebookTitle)
                 )
             }
         }

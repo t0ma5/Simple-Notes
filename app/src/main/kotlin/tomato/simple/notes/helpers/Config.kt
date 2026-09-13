@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Environment
 import android.view.Gravity
 import com.simplemobiletools.commons.helpers.BaseConfig
+import com.simplemobiletools.commons.helpers.IS_USING_SYSTEM_THEME
 import tomato.simple.notes.models.NoteType
 
 class Config(context: Context) : BaseConfig(context) {
@@ -34,6 +35,21 @@ class Config(context: Context) : BaseConfig(context) {
     var showNotebooks: Boolean
         get() = prefs.getBoolean(SHOW_NOTEBOOKS, false)
         set(showNotebooks) = prefs.edit().putBoolean(SHOW_NOTEBOOKS, showNotebooks).apply()
+
+    fun applyDefaultDarkRedThemeIfNeeded() {
+        if (!prefs.contains(IS_USING_SYSTEM_THEME)) {
+            isUsingSystemTheme = false
+            isUsingAutoTheme = false
+            isUsingSharedTheme = false
+            val resources = context.resources
+            textColor = resources.getColor(com.simplemobiletools.commons.R.color.theme_light_text_color, context.theme)
+            backgroundColor = android.graphics.Color.parseColor("#FFFAFAFA")
+            val red = resources.getColor(com.simplemobiletools.commons.R.color.md_red_700, context.theme)
+            primaryColor = red
+            accentColor = red
+            appIconColor = red
+        }
+    }
 
     var showNotePicker: Boolean
         get() = prefs.getBoolean(SHOW_NOTE_PICKER, false)

@@ -77,8 +77,6 @@ class MainActivity : SimpleActivity() {
     private var pendingFirstNotePrompt = false
     private var shouldDeletePlaceholderAfterFirstRealNote = false
 
-    private fun isGeneralNotebook() = currentNotebookId == 1L
-
     private lateinit var searchQueryET: MyEditText
     private lateinit var searchPrevBtn: ImageView
     private lateinit var searchNextBtn: ImageView
@@ -100,7 +98,8 @@ class MainActivity : SimpleActivity() {
         searchNextBtn = findViewById(com.simplemobiletools.commons.R.id.search_next)
         searchClearBtn = findViewById(com.simplemobiletools.commons.R.id.search_clear)
 
-        currentNotebookId = intent.getLongExtra(NOTEBOOK_ID, config.currentNotebookId).takeIf { it > 0L } ?: 1L
+        currentNotebookId = intent.getLongExtra(NOTEBOOK_ID, config.currentNotebookId).takeIf { it > 0L }
+            ?: config.currentNotebookId
         pendingFirstNotePrompt = intent.getBooleanExtra(OPEN_NEW_NOTE_DIALOG, false)
         shouldDeletePlaceholderAfterFirstRealNote = pendingFirstNotePrompt
 
@@ -150,7 +149,7 @@ class MainActivity : SimpleActivity() {
 
     override fun onResume() {
         super.onResume()
-        setupToolbar(binding.mainToolbar)
+        setupToolbar(binding.mainToolbar, if (isTaskRoot) NavigationIcon.None else NavigationIcon.Arrow)
         if (storedEnableLineWrap != config.enableLineWrap) {
             initViewPager()
         }
@@ -182,7 +181,8 @@ class MainActivity : SimpleActivity() {
             it.applyColorFilter(contrastColor)
         }
 
-        updateTopBarColors(binding.mainToolbar, getProperBackgroundColor())
+        updateTopBarColors(binding.mainToolbar, getProperPrimaryColor())
+        binding.pagerTabStrip.beGone()
     }
 
     override fun onPause() {
@@ -235,15 +235,19 @@ class MainActivity : SimpleActivity() {
                 title = if (textFragment?.isMarkdownPreview() == true) getString(R.string.edit_note) else getString(R.string.markdown_preview)
             }
             findItem(R.id.edit_tags).isVisible = mNotes.isNotEmpty() && ::mCurrentNote.isInitialized
-            findItem(R.id.new_note).isVisible = !isGeneralNotebook()
-            findItem(R.id.move_note).isVisible = !isGeneralNotebook() && mNotes.isNotEmpty()
+            findItem(R.id.new_note).isVisible = true
+            findItem(R.id.move_note).isVisible = mNotes.isNotEmpty()
+            findItem(R.id.switch_to_notebooks).isVisible = false
 
             saveNoteButton = findItem(R.id.save_note)
             saveNoteButton!!.isVisible =
                 !config.autosaveNotes && showSaveButton && (::mCurrentNote.isInitialized && mCurrentNote.type == NoteType.TYPE_TEXT && !mCurrentNote.isReadOnly)
         }
 
-        binding.pagerTabStrip.beVisibleIf(mNotes.isNotEmpty())
+        binding.pagerTabStrip.beGone()
+        if (::mCurrentNote.isInitialized) {
+            binding.mainToolbar.title = mCurrentNote.title
+        }
     }
 
     private fun setupOptionsMenu() {
@@ -493,9 +497,8 @@ class MainActivity : SimpleActivity() {
         NotesHelper(this).getNotesInNotebook(currentNotebookId) {
             val notes = it
 
-            if (isGeneralNotebook()) {
-                updateSelectedNote(notes.first().id!!)
-                addTextToCurrentNote(if (getCurrentNoteValue().isEmpty()) text else "\n$text")
+            if (notes.isEmpty()) {
+                displayNewNoteDialog(value = text)
                 return@getNotesInNotebook
             }
 
@@ -756,11 +759,6 @@ class MainActivity : SimpleActivity() {
         setChecklistAsDefault: Boolean = false,
         cancelCallback: (() -> Unit)? = null
     ) {
-        if (isGeneralNotebook()) {
-            toast(R.string.cannot_create_notes_in_general_notebook)
-            return
-        }
-
         NewNoteDialog(
             activity = this,
             title = title,
@@ -1578,9 +1576,9 @@ class MainActivity : SimpleActivity() {
 
     private fun moveNoteToNotebook() {
         NotebooksHelper(this).getNotebooks { notebooks ->
-            val otherNotebooks = notebooks.filter { it.id != currentNotebookId && it.id != 1L }
+            val otherNotebooks = notebooks.filter { it.id != currentNotebookId }
             if (otherNotebooks.isEmpty()) {
-                toast(R.string.cannot_create_notes_in_general_notebook)
+                toast(R.string.no_other_notebooks)
                 return@getNotebooks
             }
 

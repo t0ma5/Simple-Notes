@@ -5,4 +5,7 @@
     <color name="default_primary_color">@color/md_red_700</color>
     <color name="default_app_icon_color">@color/md_red_700</color>
     <color name="default_accent_color">@color/md_red_700</color>
+    <color name="default_text_color">@color/theme_light_text_color</color>
+    <color name="default_background_color">#FFFAFAFA</color>
+    <color name="theme_dark_red_primary_color">#FFD32F2F</color>
 </resources>

@@ -1,6 +1,8 @@
 package tomato.simple.notes.helpers
 
+import com.simplemobiletools.commons.helpers.PROTECTION_NONE
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
+import tomato.simple.notes.R
 import tomato.simple.notes.extensions.config
 import tomato.simple.notes.extensions.notesDB
 import tomato.simple.notes.extensions.notebooksDB
@@ -54,7 +56,16 @@ class RecycleBinHelper(private val context: android.content.Context) {
             val notebook = context.notebooksDB.getNotebookWithId(note.notebookId)
             when {
                 notebook == null -> {
-                    note.notebookId = 1L
+                    val fallbackId = context.notebooksDB.getNotebooks().firstOrNull()?.id
+                        ?: context.notebooksDB.insertOrUpdate(
+                            Notebook(
+                                id = null,
+                                title = context.getString(R.string.app_launcher_name),
+                                protectionType = PROTECTION_NONE,
+                                protectionHash = ""
+                            )
+                        )
+                    note.notebookId = fallbackId
                     note.deletedTs = 0L
                     context.notesDB.insertOrUpdate(note)
                 }

@@ -43,11 +43,23 @@
 
     <ImageView
         android:id="@+id/notebook_icon"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="51dp"
+        android:layout_height="51dp"
         android:layout_centerInParent="true"
         android:importantForAccessibility="no"
         android:src="@drawable/ic_notebooks_vector" />
+
+    <com.simplemobiletools.commons.views.MyTextView
+        android:id="@+id/notebook_note_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@+id/notebook_drag_handle"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="@dimen/smaller_text_size"
+        tools:text="4 notes" />
 
     <ImageView
         android:id="@+id/notebook_drag_handle"
@@ -60,6 +72,6 @@
         android:contentDescription="@string/notebook_actions"
         android:focusable="true"
         android:padding="8dp"
-        android:src="@drawable/ic_drag_handle_vector" />
+        android:src="@drawable/ic_drag_indicator_vector" />
 
 </tomato.simple.notes.views.SquareRelativeLayout>

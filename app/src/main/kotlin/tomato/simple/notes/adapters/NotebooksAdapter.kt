@@ -17,6 +17,7 @@ import java.util.Collections
 
 class NotebooksAdapter(
     private var notebooks: MutableList<Notebook>,
+    private var noteCounts: Map<Long, Int> = emptyMap(),
     private val itemClick: (Notebook) -> Unit,
     private val itemLongClick: (Notebook) -> Unit,
     private val dragStart: (RecyclerView.ViewHolder) -> Unit,
@@ -38,6 +39,8 @@ class NotebooksAdapter(
         val notebook = notebooks[position]
         holder.binding.apply {
             notebookTitle.text = notebook.title
+            val count = noteCounts[notebook.id] ?: 0
+            notebookNoteCount.text = root.resources.getQuantityString(R.plurals.notebook_note_count, count, count)
             notebookIcon.applyColorFilter(root.context.getProperPrimaryColor())
             notebookLockIcon.visibility = if (notebook.isLocked()) android.view.View.VISIBLE else android.view.View.GONE
             if (notebook.isLocked()) {
@@ -93,8 +96,9 @@ class NotebooksAdapter(
 
     override fun getItemCount() = notebooks.size
 
-    fun updateItems(newNotebooks: List<Notebook>) {
+    fun updateItems(newNotebooks: List<Notebook>, newNoteCounts: Map<Long, Int> = noteCounts) {
         notebooks = newNotebooks.toMutableList()
+        noteCounts = newNoteCounts
         notifyDataSetChanged()
     }
 

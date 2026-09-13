@@ -540,6 +540,12 @@ def main() -> None:
                 '    <color name="color_primary">#FFD32F2F</color>\n'
                 '    <color name="color_primary_dark">#FFB71C1C</color>\n',
             ),
+            (
+                '    <color name="default_text_color">@color/theme_dark_text_color</color>\n'
+                '    <color name="default_background_color">@color/theme_dark_background_color</color>\n',
+                '    <color name="default_text_color">@color/theme_light_text_color</color>\n'
+                '    <color name="default_background_color">#FFFAFAFA</color>\n',
+            ),
         ],
     )
     patch(
@@ -556,6 +562,36 @@ def main() -> None:
         ],
     )
 
+    patch(
+        "commons/src/main/kotlin/com/simplemobiletools/commons/helpers/BaseConfig.kt",
+        [
+            (
+                '        get() = prefs.getBoolean(IS_USING_SYSTEM_THEME, isSPlus())\n',
+                '        get() = prefs.getBoolean(IS_USING_SYSTEM_THEME, false)\n',
+            ),
+        ],
+    )
+    patch(
+        "commons/src/main/kotlin/com/simplemobiletools/commons/activities/CustomizationActivity.kt",
+        [
+            (
+                '                MyTheme(\n'
+                '                    getString(R.string.dark_red),\n'
+                '                    R.color.theme_dark_text_color,\n'
+                '                    R.color.theme_dark_background_color,\n'
+                '                    R.color.theme_dark_red_primary_color,\n'
+                '                    R.color.md_red_700\n'
+                '                )\n',
+                '                MyTheme(\n'
+                '                    getString(R.string.dark_red),\n'
+                '                    R.color.theme_light_text_color,\n'
+                '                    R.color.theme_light_background_color,\n'
+                '                    R.color.theme_dark_red_primary_color,\n'
+                '                    R.color.md_red_700\n'
+                '                )\n',
+            ),
+        ],
+    )
     scrub_simplemobiletools_com()
     print("commons fork patches applied")
 

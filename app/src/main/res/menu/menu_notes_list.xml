@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/search"
+        android:icon="@drawable/ic_search_vector"
+        android:title="@string/search"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/switch_to_notebooks"
+        android:icon="@drawable/ic_notebooks_vector"
+        android:title="@string/switch_to_notebooks"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/filter_by_tag"
+        android:title="@string/filter_by_tag"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/recycle_bin"
+        android:title="@string/recycle_bin"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/settings"
+        android:icon="@drawable/ic_settings_cog_vector"
+        android:title="@string/settings"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/about"
+        android:icon="@drawable/ic_info_vector"
+        android:title="@string/about"
+        app:showAsAction="ifRoom" />
+</menu>

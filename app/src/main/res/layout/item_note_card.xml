@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/note_card_holder"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/medium_margin"
+    android:background="@drawable/widget_round_background"
+    android:minHeight="132dp"
+    android:padding="@dimen/normal_margin">
+
+    <ImageView
+        android:id="@+id/note_card_pin"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_pin_vector"
+        android:visibility="gone" />
+
+    <com.simplemobiletools.commons.views.MyTextView
+        android:id="@+id/note_card_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/note_card_pin"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="@dimen/big_text_size"
+        android:textStyle="bold"
+        tools:text="Shopping" />
+
+    <ImageView
+        android:id="@+id/note_card_lock"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_below="@+id/note_card_title"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="@dimen/small_margin"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_lock_vector"
+        android:visibility="gone" />
+
+    <com.simplemobiletools.commons.views.MyTextView
+        android:id="@+id/note_card_preview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/note_card_notebook"
+        android:layout_below="@+id/note_card_title"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="@dimen/small_margin"
+        android:ellipsize="end"
+        android:maxLines="4"
+        android:minHeight="64dp"
+        tools:text="Milk, eggs, bread" />
+
+    <com.simplemobiletools.commons.views.MyTextView
+        android:id="@+id/note_card_notebook"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="@dimen/smaller_text_size"
+        tools:text="Work" />
+
+</RelativeLayout>

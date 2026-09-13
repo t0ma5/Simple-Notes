@@ -42,75 +42,56 @@ class NotesHelper(val context: Context) {
             }
 
             notes.removeAll(notesToDelete)
-
-            if (notes.isEmpty()) {
-                val generalNote = context.resources.getString(R.string.general_note)
-                context.notesDB.insertNoteIfNotebookEmpty(
-                    notebookId = 1L,
-                    title = generalNote,
-                    value = "",
-                    type = NoteType.TYPE_TEXT.value,
-                    path = "",
-                    protectionType = PROTECTION_NONE,
-                    protectionHash = ""
-                )
-                context.notesDB.deleteDuplicateEmptyNotesInNotebook(
-                    notebookId = 1L,
-                    title = generalNote,
-                    type = NoteType.TYPE_TEXT.value
-                )
-                notes.addAll(context.notesDB.getNotes())
-            }
+            cleanupPlaceholderNotesSync()
 
             Handler(Looper.getMainLooper()).post {
-                callback(notes)
+                callback(context.notesDB.getNotes())
             }
         }
     }
 
     fun getNotesInNotebook(notebookId: Long, callback: (notes: List<Note>) -> Unit) {
         ensureBackgroundThread {
-            if (notebookId == 1L) {
-                ensureDefaultNotebookExistsSync()
-            }
-
-            val notes = context.notesDB.getNotesInNotebook(notebookId).toMutableList()
-
-            if (notes.isEmpty() && notebookId == 1L) {
-                val generalNote = context.resources.getString(R.string.general_note)
-                context.notesDB.insertNoteIfNotebookEmpty(
-                    notebookId = notebookId,
-                    title = generalNote,
-                    value = "",
-                    type = NoteType.TYPE_TEXT.value,
-                    path = "",
-                    protectionType = PROTECTION_NONE,
-                    protectionHash = ""
-                )
-                context.notesDB.deleteDuplicateEmptyNotesInNotebook(
-                    notebookId = notebookId,
-                    title = generalNote,
-                    type = NoteType.TYPE_TEXT.value
-                )
-                notes.addAll(context.notesDB.getNotesInNotebook(notebookId))
-            }
-
+            cleanupPlaceholderNotesSync()
+            val notes = context.notesDB.getNotesInNotebook(notebookId)
             Handler(Looper.getMainLooper()).post {
                 callback(notes)
             }
         }
     }
 
-    private fun ensureDefaultNotebookExistsSync() {
+    fun cleanupPlaceholderNotes() {
+        ensureBackgroundThread {
+            cleanupPlaceholderNotesSync()
+        }
+    }
+
+    fun cleanupPlaceholderNotesSync() {
         val generalNote = context.resources.getString(R.string.general_note)
-        val existingNotebook = context.notebooksDB.getNotebookWithId(1L)
-        when {
-            existingNotebook == null -> {
-                context.notebooksDB.insertOrUpdate(Notebook(id = 1L, title = generalNote, protectionType = PROTECTION_NONE, protectionHash = ""))
+        context.notesDB.getNotes()
+            .filter { note ->
+                note.title == generalNote &&
+                    note.value.isEmpty() &&
+                    note.path.isEmpty() &&
+                    note.type == NoteType.TYPE_TEXT &&
+                    !note.isLocked()
             }
-            existingNotebook.title != generalNote -> {
-                existingNotebook.title = generalNote
-                context.notebooksDB.insertOrUpdate(existingNotebook)
+            .forEach { context.notesDB.deleteNote(it) }
+    }
+
+    fun ensureAtLeastOneNotebook(callback: (notebookId: Long) -> Unit) {
+        ensureBackgroundThread {
+            val existing = context.notebooksDB.getNotebooks()
+            val notebookId = if (existing.isNotEmpty()) {
+                existing.first().id!!
+            } else {
+                val title = context.resources.getString(R.string.app_launcher_name)
+                context.notebooksDB.insertOrUpdate(
+                    Notebook(id = null, title = title, protectionType = PROTECTION_NONE, protectionHash = "")
+                )
+            }
+            Handler(Looper.getMainLooper()).post {
+                callback(notebookId)
             }
         }
     }
@@ -184,7 +165,7 @@ class NotesHelper(val context: Context) {
                 note.id = null
 
                 // Determine target notebook
-                var targetNotebookId = 1L
+                var targetNotebookId: Long
                 val notebookTitle = note.notebookTitle
                 if (notebookTitle != null) {
                     if (notebooksMap.containsKey(notebookTitle)) {
@@ -194,6 +175,11 @@ class NotesHelper(val context: Context) {
                         targetNotebookId = activity.notebooksDB.insertOrUpdate(newNotebook)
                         notebooksMap[notebookTitle] = newNotebook.copy(id = targetNotebookId)
                     }
+                } else {
+                    targetNotebookId = activity.notebooksDB.getNotebooks().firstOrNull()?.id
+                        ?: activity.notebooksDB.insertOrUpdate(
+                            Notebook(null, activity.getString(R.string.app_launcher_name), PROTECTION_NONE, "")
+                        )
                 }
 
                 note.notebookId = targetNotebookId

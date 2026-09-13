@@ -58,7 +58,7 @@ class MigrateNoteAdapter(
             migrateNoteTitle.text = note.title
             val notebook = notebookMap[note.notebookId]
             migrateNoteNotebook.text = notebook?.title ?: ""
-            migrateNoteNotebook.beVisibleIf(notebook != null && notebook.id != 1L)
+            migrateNoteNotebook.beVisibleIf(notebook != null)
         }
     }
 }

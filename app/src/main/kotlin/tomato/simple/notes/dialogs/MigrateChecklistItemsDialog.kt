@@ -80,11 +80,11 @@ class MigrateChecklistItemsDialog(
 
     private fun showCreateNewNoteDialog() {
         // Let user pick a notebook first, then create a note in it
-        val notebookNames = allNotebooks.filter { it.id != 1L }.map { it.title }.toTypedArray()
-        val notebookIds = allNotebooks.filter { it.id != 1L }.map { it.id }
+        val notebookNames = allNotebooks.map { it.title }.toTypedArray()
+        val notebookIds = allNotebooks.map { it.id }
 
         if (notebookNames.isEmpty()) {
-            activity.toast(R.string.cannot_create_notes_in_general_notebook)
+            activity.toast(R.string.no_other_notebooks)
             return
         }
 

@@ -16,13 +16,13 @@ class SplashActivity : BaseSplashActivity() {
                 }
             }
             intent.extras?.containsKey(NOTEBOOK_ID) == true -> {
-                Intent(this, MainActivity::class.java).apply {
-                    putExtra(NOTEBOOK_ID, intent.getLongExtra(NOTEBOOK_ID, 1L))
+                Intent(this, NotesListActivity::class.java).apply {
+                    putExtra(NOTEBOOK_ID, intent.getLongExtra(NOTEBOOK_ID, 0L))
                     startActivity(this)
                 }
             }
             config.showNotebooks -> startActivity(Intent(this, NotebooksActivity::class.java))
-            else -> startActivity(Intent(this, MainActivity::class.java))
+            else -> startActivity(Intent(this, NotesListActivity::class.java))
         }
         finish()
     }

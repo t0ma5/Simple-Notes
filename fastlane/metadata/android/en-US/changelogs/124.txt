@@ -1,6 +1,8 @@
 * Toolbar sits below the phone status bar on Android 15+
-* Notes is the default home; toolbar icon switches to notebooks
-* Notebook cards show a centered icon; the handle opens the same menu as a long-press
+* Notes is a two-column card grid; toolbar icon switches to notebooks
+* Notebook cards show a smaller icon, a note count, and a six-dot handle
+* Every notebook can be deleted; you can add notes in any of them
+* First install no longer creates a fake “General note”
 * About lists Gson, Markwon, and Kotlinx Serialization
 * Read-only mode for text notes, checklists, and counters
 * Keyboard keeps the cursor visible on long notes

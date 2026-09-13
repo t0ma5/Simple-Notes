@@ -30,7 +30,6 @@ import tomato.simple.notes.helpers.NotesHelper
 import tomato.simple.notes.helpers.RecycleBinHelper
 import tomato.simple.notes.models.Note
 import tomato.simple.notes.models.Notebook
-import tomato.simple.notes.models.NoteType
 
 class NotebooksActivity : SimpleActivity() {
     private val binding by viewBinding(ActivityNotebooksBinding::inflate)
@@ -80,6 +79,7 @@ class NotebooksActivity : SimpleActivity() {
 
         adapter = NotebooksAdapter(
             mutableListOf(),
+            emptyMap(),
             itemClick = { openNotebook(it) },
             itemLongClick = { showNotebookActions(it) },
             dragStart = { viewHolder -> itemTouchHelper?.startDrag(viewHolder) },
@@ -124,9 +124,7 @@ class NotebooksActivity : SimpleActivity() {
             NewNotebookDialog(this) { notebook ->
                 NotebooksHelper(this).insertOrUpdateNotebook(notebook) { id ->
                     notebook.id = id
-                    createInitialNoteIfNeeded(id) {
-                        openNotebookUnlocked(notebook, promptForFirstNote = true)
-                    }
+                    openNotebookUnlocked(notebook, promptForFirstNote = true)
                 }
             }
         }
@@ -137,9 +135,7 @@ class NotebooksActivity : SimpleActivity() {
         setupToolbar(binding.notebooksToolbar)
 
         (binding.notebooksList.layoutManager as? GridLayoutManager)?.spanCount = config.notebookColumns
-        ensureDefaultNotebookExists {
-            refreshNotebooks()
-        }
+        refreshNotebooks()
         RecycleBinHelper(this).emptyOldItems()
         updateTextColors(binding.notebooksCoordinator)
     }
@@ -150,50 +146,18 @@ class NotebooksActivity : SimpleActivity() {
         }
         hideKeyboard()
         config.showNotebooks = false
-        Intent(this, MainActivity::class.java).apply {
-            putExtra(NOTEBOOK_ID, config.currentNotebookId)
-            startActivity(this)
-        }
+        startActivity(Intent(this, NotesListActivity::class.java))
         finish()
     }
 
-    private fun ensureDefaultNotebookExists(callback: () -> Unit) {
-        val generalNoteTitle = getString(R.string.general_note)
-        ensureBackgroundThread {
-            val existingNotebook = notebooksDB.getNotebookWithId(1L)
-            when {
-                existingNotebook == null -> {
-                    notebooksDB.insertOrUpdate(Notebook(id = 1L, title = generalNoteTitle, protectionType = PROTECTION_NONE, protectionHash = ""))
-                }
-
-                existingNotebook.title != generalNoteTitle -> {
-                    existingNotebook.title = generalNoteTitle
-                    notebooksDB.insertOrUpdate(existingNotebook)
-                }
-            }
-
-            notesDB.insertNoteIfNotebookEmpty(
-                notebookId = 1L,
-                title = generalNoteTitle,
-                value = "",
-                type = NoteType.TYPE_TEXT.value,
-                path = "",
-                protectionType = PROTECTION_NONE,
-                protectionHash = ""
-            )
-            notesDB.deleteDuplicateEmptyNotesInNotebook(
-                notebookId = 1L,
-                title = generalNoteTitle,
-                type = NoteType.TYPE_TEXT.value
-            )
-
-            runOnUiThread(callback)
-        }
-    }
-
     private fun refreshNotebooks() {
-        NotebooksHelper(this).getNotebooks { notebooks ->
-            adapter?.updateItems(notebooks)
+        ensureBackgroundThread {
+            NotesHelper(this).cleanupPlaceholderNotesSync()
+            val notebooks = notebooksDB.getNotebooks()
+            val counts = notesDB.getNotes().groupingBy { it.notebookId }.eachCount()
+            runOnUiThread {
+                adapter?.updateItems(notebooks, counts)
+            }
         }
     }
 
@@ -208,16 +172,16 @@ class NotebooksActivity : SimpleActivity() {
     }
 
     private fun openNotebookUnlocked(notebook: Notebook) {
-        config.currentNotebookId = notebook.id ?: 1L
-        Intent(this, MainActivity::class.java).apply {
+        config.currentNotebookId = notebook.id ?: 0L
+        Intent(this, NotesListActivity::class.java).apply {
             putExtra(NOTEBOOK_ID, config.currentNotebookId)
             startActivity(this)
         }
     }
 
     private fun openNotebookUnlocked(notebook: Notebook, promptForFirstNote: Boolean) {
-        config.currentNotebookId = notebook.id ?: 1L
-        Intent(this, MainActivity::class.java).apply {
+        config.currentNotebookId = notebook.id ?: 0L
+        Intent(this, NotesListActivity::class.java).apply {
             putExtra(NOTEBOOK_ID, config.currentNotebookId)
             if (promptForFirstNote) {
                 putExtra(OPEN_NEW_NOTE_DIALOG, true)
@@ -231,9 +195,7 @@ class NotebooksActivity : SimpleActivity() {
             add(getString(R.string.rename_notebook))
             add(if (notebook.isPinned()) getString(R.string.unpin_notebook) else getString(R.string.pin_notebook))
             add(if (notebook.isLocked()) getString(R.string.unlock_notebook) else getString(R.string.lock_notebook))
-            if (notebook.id != 1L) {
-                add(getString(R.string.delete_notebook))
-            }
+            add(getString(R.string.delete_notebook))
         }.toTypedArray()
 
         AlertDialog.Builder(this)
@@ -294,11 +256,6 @@ class NotebooksActivity : SimpleActivity() {
     }
 
     private fun deleteNotebook(notebook: Notebook) {
-        if (notebook.id == 1L) {
-            toast(R.string.cannot_delete_default_notebook)
-            return
-        }
-
         val notebookTitle = notebook.title
         val message = String.format(getString(R.string.delete_notebook_prompt_message), notebookTitle)
         com.simplemobiletools.commons.dialogs.ConfirmationDialog(
@@ -314,9 +271,14 @@ class NotebooksActivity : SimpleActivity() {
                     toast(R.string.moved_to_recycle_bin)
                 }
                 if (config.currentNotebookId == notebookId) {
-                    config.currentNotebookId = 1L
+                    ensureBackgroundThread {
+                        val nextId = notebooksDB.getNotebooks().firstOrNull()?.id ?: 0L
+                        config.currentNotebookId = nextId
+                        runOnUiThread { refreshNotebooks() }
+                    }
+                } else {
+                    refreshNotebooks()
                 }
-                refreshNotebooks()
             }
         }
     }
@@ -449,23 +411,6 @@ class NotebooksActivity : SimpleActivity() {
             putExtra(NOTEBOOK_ID, note.notebookId)
             putExtra(OPEN_NOTE_ID, note.id)
             startActivity(this)
-        }
-    }
-
-    private fun createInitialNoteIfNeeded(notebookId: Long, callback: () -> Unit) {
-        val note = Note(
-            id = null,
-            notebookId = notebookId,
-            title = getString(R.string.general_note),
-            value = "",
-            type = NoteType.TYPE_TEXT,
-            path = "",
-            protectionType = PROTECTION_NONE,
-            protectionHash = ""
-        )
-
-        NotesHelper(this).insertOrUpdateNote(note) {
-            callback()
         }
     }
 }
