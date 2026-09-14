@@ -1,6 +1,9 @@
 * Toolbar sits below the phone status bar on Android 15+
 * Notes is a two-column card grid; toolbar icon switches to notebooks
-* Notebook cards show a smaller icon, a note count, and a six-dot handle
+* Notebook cards show count on the left and ::: on the right
+* Lock notebooks and notes with fingerprint, pattern, or PIN
+* Note cards show title plus 4 unwrapped preview lines; long-press to reorder
+* Encrypted or plain exports
 * Every notebook can be deleted; you can add notes in any of them
 * First install no longer creates a fake “General note”
 * About lists Gson, Markwon, and Kotlinx Serialization
