@@ -111,6 +111,9 @@ class NotesHelper(val context: Context) {
 
     fun insertOrUpdateNote(note: Note, callback: ((newNoteId: Long) -> Unit)? = null) {
         ensureBackgroundThread {
+            if (note.id == null && note.sortOrder <= 0) {
+                note.sortOrder = (context.notesDB.getMaxSortOrder() ?: 0) + 1
+            }
             val noteId = context.notesDB.insertOrUpdate(note)
             Handler(Looper.getMainLooper()).post {
                 callback?.invoke(noteId)
@@ -158,6 +161,9 @@ class NotesHelper(val context: Context) {
             notes.forEach { note ->
                 // we need to reset the ID to avoid overwriting existing notes with the same ID
                 note.id = null
+                if (note.sortOrder <= 0) {
+                    note.sortOrder = (activity.notesDB.getMaxSortOrder() ?: 0) + 1
+                }
 
                 // Determine target notebook
                 var targetNotebookId: Long
@@ -212,13 +218,16 @@ class NotesHelper(val context: Context) {
         }
     }
 
-    fun exportNotes(notesToBackup: List<Note>, outputStream: OutputStream): ExportResult {
+    fun exportNotes(notesToBackup: List<Note>, outputStream: OutputStream, password: String? = null): ExportResult {
         return try {
             val notebooks = context.notebooksDB.getNotebooks()
             val notebooksById = notebooks.associateBy { it.id }
-            notesToBackup.forEach {
-                it.notebookTitle = notebooksById[it.notebookId]?.title
+            val exportNotes = notesToBackup.map { note ->
+                note.copy(protectionType = PROTECTION_NONE, protectionHash = "").also { copy ->
+                    copy.notebookTitle = notebooksById[note.notebookId]?.title
+                }
             }
+            val exportNotebooks = notebooks.map { it.copy(protectionType = PROTECTION_NONE, protectionHash = "") }
 
             val config = context.config
             val settings = BackupSettings(
@@ -239,12 +248,16 @@ class NotesHelper(val context: Context) {
                 addNewChecklistItemsTop = config.addNewChecklistItemsTop,
                 notebookColumns = config.notebookColumns
             )
-            val backupData = BackupData(notesToBackup, notebooks, settings)
+            val backupData = BackupData(exportNotes, exportNotebooks, settings)
 
             val jsonString = Json.encodeToString(backupData)
-            val encryptedString = NotesEncryptionHelper.encrypt(jsonString)
+            val payload = if (!password.isNullOrEmpty()) {
+                NotesEncryptionHelper.encrypt(jsonString, password)
+            } else {
+                jsonString
+            }
             outputStream.use {
-                it.write(encryptedString.toByteArray(Charsets.UTF_8))
+                it.write(payload.toByteArray(Charsets.UTF_8))
             }
             ExportResult.EXPORT_OK
         } catch (e: Exception) {

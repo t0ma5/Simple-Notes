@@ -25,13 +25,13 @@ APKs are published on [GitHub Releases](https://github.com/t0ma5/Simple-Notes/re
 
 ## New features in this fork
 
-- **Notebooks** → Create, rename, delete, pin, reorder and password-protect collections of notes.
+- **Notebooks** → Create, rename, delete, pin, reorder and lock collections of notes. Count is left, `:::` is right, on the bottom row of each card. Tapping `:::` opens the same menu as a long-press.
 - **Notebooks/Notes View** - Toolbar icon to the right of search switches notebooks vs a two-column notes card grid (notes is the default after install).
 - **Read-only notes** → Overflow Make read-only / Allow editing. Blocks typing, checklist checks, and counter buttons. Survives app restart.
 - **Lock Notes** → Lock a text note, checklist or counter note with Fingerprint, Pattern or Pin #. Hides preview card as well until unlock.
 - **Encrypted exports** → Use a password to encrypt exports using AES. Can also export in plain text with no password.
 - **Search** notes and notebooks from the notebooks screen.
-- **Drag & Drop** notebooks and notes to reorder them.
+- **Drag & Drop** notebooks with `:::`. Long-press a note card to reorder; cards keep a 3-line body preview.
 - **Recycle bin** for deleted notes and notebooks.
 - **Markdown** preview for text notes.
 - Pasting formatted paste becomes **plain text**. Composing keyboards still work.

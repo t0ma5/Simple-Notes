@@ -14,6 +14,7 @@ import com.simplemobiletools.commons.helpers.*
 import com.simplemobiletools.commons.models.RadioItem
 import tomato.simple.notes.R
 import tomato.simple.notes.databinding.ActivitySettingsBinding
+import tomato.simple.notes.dialogs.BackupPasswordDialog
 import tomato.simple.notes.dialogs.ExportNotesDialog
 import tomato.simple.notes.dialogs.ManageAutoBackupsDialog
 import tomato.simple.notes.extensions.*
@@ -23,7 +24,6 @@ import tomato.simple.notes.models.Notebook
 import tomato.simple.notes.models.Widget
 import tomato.simple.notes.models.BackupData
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.Locale
 import kotlin.system.exitProcess
@@ -103,11 +103,16 @@ class SettingsActivity : SimpleActivity() {
                 requestUnlockNotes(notes) { unlockedNotes ->
                     val notLockedNotes = notes.filterNot { it.isLocked() }
                     val notesToExport = unlockedNotes + notLockedNotes
-                    exportNotes(notesToExport, uri)
+                    exportNotes(notesToExport, uri, pendingExportPassword)
+                    pendingExportPassword = null
                 }
             }
+        } else {
+            pendingExportPassword = null
         }
     }
+
+    private var pendingExportPassword: String? = null
 
     private fun setupCustomizeColors() {
         binding.settingsColorCustomizationHolder.setOnClickListener {
@@ -327,8 +332,16 @@ class SettingsActivity : SimpleActivity() {
 
     private fun setupNotesExport() {
         binding.settingsExportNotesHolder.setOnClickListener {
-            ExportNotesDialog(this) { filename ->
-                saveDocument.launch(filename)
+            ExportNotesDialog(this) { filename, encrypt ->
+                if (encrypt) {
+                    BackupPasswordDialog(this, confirm = true, titleRes = R.string.export_encrypted) { password ->
+                        pendingExportPassword = password
+                        saveDocument.launch(filename)
+                    }
+                } else {
+                    pendingExportPassword = null
+                    saveDocument.launch(filename)
+                }
             }
         }
     }
@@ -339,14 +352,14 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun exportNotes(notes: List<Note>, uri: Uri) {
+    private fun exportNotes(notes: List<Note>, uri: Uri, password: String?) {
         if (notes.isEmpty()) {
             toast(com.simplemobiletools.commons.R.string.no_entries_for_exporting)
         } else {
             ensureBackgroundThread {
                 val result = try {
                     val outputStream = contentResolver.openOutputStream(uri)!!
-                    NotesHelper(this).exportNotes(notes, outputStream)
+                    NotesHelper(this).exportNotes(notes, outputStream, password)
                 } catch (e: Exception) {
                     showErrorToast(e)
                     ExportResult.EXPORT_FAIL
@@ -369,12 +382,29 @@ class SettingsActivity : SimpleActivity() {
                 inputStream.bufferedReader().readText()
             }
 
-            val jsonString = NotesEncryptionHelper.decrypt(fileContent) ?: fileContent
+            if (NotesEncryptionHelper.isPasswordEncrypted(fileContent)) {
+                BackupPasswordDialog(this, confirm = false, titleRes = R.string.import_notes) { password ->
+                    val jsonString = NotesEncryptionHelper.decrypt(fileContent, password)
+                    if (jsonString == null) {
+                        toast(R.string.wrong_password)
+                    } else {
+                        parseAndImport(jsonString)
+                    }
+                }
+            } else {
+                val jsonString = NotesEncryptionHelper.decryptLegacy(fileContent) ?: fileContent
+                parseAndImport(jsonString)
+            }
+        } catch (e: Exception) {
+            showErrorToast(e)
+        }
+    }
 
+    private fun parseAndImport(jsonString: String) {
+        try {
             var notes: List<Note>
             var notebooks: List<Notebook> = emptyList()
             try {
-                // Try parsing as BackupData (new format)
                 val backupData = Json.decodeFromString<BackupData>(jsonString)
                 notes = backupData.notes
                 notebooks = backupData.notebooks
@@ -397,7 +427,6 @@ class SettingsActivity : SimpleActivity() {
                     config.notebookColumns = settings.notebookColumns
                 }
             } catch (e: Exception) {
-                // Fallback to List<Note> (old format)
                 notes = Json.decodeFromString<List<Note>>(jsonString)
             }
 

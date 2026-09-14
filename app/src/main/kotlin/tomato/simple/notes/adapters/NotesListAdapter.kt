@@ -8,19 +8,20 @@ import com.simplemobiletools.commons.extensions.beVisibleIf
 import com.simplemobiletools.commons.extensions.getColoredDrawableWithColor
 import com.simplemobiletools.commons.extensions.getProperPrimaryColor
 import com.simplemobiletools.commons.extensions.getProperTextColor
-import tomato.simple.notes.R
 import tomato.simple.notes.databinding.ItemNoteCardBinding
 import tomato.simple.notes.extensions.applyNoteCardBackground
 import tomato.simple.notes.extensions.getMutedTextColor
 import tomato.simple.notes.helpers.previewText
 import tomato.simple.notes.models.Note
 import tomato.simple.notes.models.Notebook
+import java.util.Collections
 
 class NotesListAdapter(
-    private var notes: List<Note>,
+    private var notes: MutableList<Note>,
     private var notebooksById: Map<Long, Notebook>,
     private var showNotebookName: Boolean,
     private val itemClick: (Note) -> Unit,
+    private val itemsReordered: (List<Note>) -> Unit,
 ) : RecyclerView.Adapter<NotesListAdapter.ViewHolder>() {
 
     class ViewHolder(val binding: ItemNoteCardBinding) : RecyclerView.ViewHolder(binding.root)
@@ -50,10 +51,6 @@ class NotesListAdapter(
                     context.resources.getColoredDrawableWithColor(com.simplemobiletools.commons.R.drawable.ic_lock_vector, primary)
                 )
             }
-            noteCardPin.beVisibleIf(note.isPinned())
-            if (note.isPinned()) {
-                noteCardPin.setImageDrawable(context.resources.getColoredDrawableWithColor(R.drawable.ic_pin_vector, primary))
-            }
             val notebookTitle = notebooksById[note.notebookId]?.title.orEmpty()
             noteCardNotebook.text = notebookTitle
             noteCardNotebook.setTextColor(muted)
@@ -65,9 +62,30 @@ class NotesListAdapter(
     override fun getItemCount() = notes.size
 
     fun updateItems(newNotes: List<Note>, newNotebooks: Map<Long, Notebook>, showNotebook: Boolean) {
-        notes = newNotes
+        notes = newNotes.toMutableList()
         notebooksById = newNotebooks
         showNotebookName = showNotebook
         notifyDataSetChanged()
+    }
+
+    fun onItemMove(fromPosition: Int, toPosition: Int): Boolean {
+        if (fromPosition == toPosition) {
+            return false
+        }
+        if (fromPosition < toPosition) {
+            for (i in fromPosition until toPosition) {
+                Collections.swap(notes, i, i + 1)
+            }
+        } else {
+            for (i in fromPosition downTo toPosition + 1) {
+                Collections.swap(notes, i, i - 1)
+            }
+        }
+        notifyItemMoved(fromPosition, toPosition)
+        return true
+    }
+
+    fun onDragFinished() {
+        itemsReordered(notes)
     }
 }

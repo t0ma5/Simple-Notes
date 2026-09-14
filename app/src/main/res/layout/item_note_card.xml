@@ -9,23 +9,12 @@
     android:minHeight="132dp"
     android:padding="@dimen/normal_margin">
 
-    <ImageView
-        android:id="@+id/note_card_pin"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentTop="true"
-        android:importantForAccessibility="no"
-        android:src="@drawable/ic_pin_vector"
-        android:visibility="gone" />
-
     <com.simplemobiletools.commons.views.MyTextView
         android:id="@+id/note_card_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_toStartOf="@+id/note_card_pin"
         android:ellipsize="end"
         android:maxLines="1"
         android:textSize="@dimen/big_text_size"
@@ -52,8 +41,8 @@
         android:layout_alignParentStart="true"
         android:layout_marginTop="@dimen/small_margin"
         android:ellipsize="end"
-        android:maxLines="4"
-        android:minHeight="64dp"
+        android:maxLines="3"
+        android:minHeight="48dp"
         tools:text="Milk, eggs, bread" />
 
     <com.simplemobiletools.commons.views.MyTextView

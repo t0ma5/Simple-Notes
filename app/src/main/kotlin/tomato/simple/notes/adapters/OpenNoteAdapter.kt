@@ -10,6 +10,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.simplemobiletools.commons.activities.BaseSimpleActivity
 import com.simplemobiletools.commons.adapters.MyRecyclerViewAdapter
+import com.simplemobiletools.commons.extensions.beGone
 import com.simplemobiletools.commons.extensions.beGoneIf
 import com.simplemobiletools.commons.extensions.beVisibleIf
 import com.simplemobiletools.commons.extensions.getColoredDrawableWithColor
@@ -70,8 +71,7 @@ class OpenNoteAdapter(
             openNoteItemText.beGoneIf(formattedText.isNullOrBlank() || note.isLocked())
             iconLock.beVisibleIf(note.isLocked())
             iconLock.setImageDrawable(activity.resources.getColoredDrawableWithColor(com.simplemobiletools.commons.R.drawable.ic_lock_vector, properPrimaryColor))
-            iconPin.beVisibleIf(note.isPinned())
-            iconPin.setImageDrawable(activity.resources.getColoredDrawableWithColor(tomato.simple.notes.R.drawable.ic_pin_vector, properPrimaryColor))
+            iconPin.beGone()
             val tags = note.formattedTags()
             openNoteItemTags.beVisibleIf(tags.isNotEmpty())
             openNoteItemTags.text = tags

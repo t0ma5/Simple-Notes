@@ -9,6 +9,16 @@
     <string name="edit_note">Edit</string>
     <string name="make_read_only">Make read-only</string>
     <string name="allow_editing">Allow editing</string>
+    <string name="rename">Rename</string>
+    <string name="pin">Pin</string>
+    <string name="unpin">Unpin</string>
+    <string name="lock">Lock</string>
+    <string name="unlock">Unlock</string>
+    <string name="move">Move</string>
+    <string name="export_txt">Export txt</string>
+    <string name="reorder">Reorder</string>
+    <string name="export_plain_text">Export plain text</string>
+    <string name="export_encrypted">Export encrypted</string>
     <string name="note_is_read_only">This note is read-only</string>
     <string name="tags">Tags</string>
     <string name="edit_tags">Edit tags</string>
@@ -32,7 +42,6 @@
     <string name="rename_note">Rename note</string>
     <string name="general_note">General note</string>
     <string name="notebooks">Notebooks</string>
-    <string name="notebook_screen_title">%s - Notebook</string>
     <string name="notebook_actions">Notebook actions</string>
     <string name="switch_to_notebooks">Switch to notebooks</string>
     <string name="switch_to_notes">Switch to notes</string>
@@ -79,8 +88,8 @@
     <string name="new_note_type">New note type:</string>
     <string name="text_note">Text note</string>
     <string name="counter">Counter</string>
-    <string name="lock_note">Lock note</string>
-    <string name="unlock_note">Unlock note</string>
+    <string name="lock_note">Lock</string>
+    <string name="unlock_note">Unlock</string>
     <string name="unlock_notes">Unlock notes</string>
     <string name="found_locked_notes_info">The following notes are locked. You can either unlock them one by one or skip exporting them.</string>
     <string name="note_content_locked">The notes\' content is locked.</string>

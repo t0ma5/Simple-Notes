@@ -14,6 +14,14 @@ object NotebookPasswordHasher {
         return "${Base64.encodeToString(salt, Base64.NO_WRAP)}:${Base64.encodeToString(hash, Base64.NO_WRAP)}"
     }
 
+    fun isLegacyHash(stored: String): Boolean {
+        val parts = stored.split(':', limit = 2)
+        if (parts.size != 2) return false
+        val salt = runCatching { Base64.decode(parts[0], Base64.NO_WRAP) }.getOrNull() ?: return false
+        val hash = runCatching { Base64.decode(parts[1], Base64.NO_WRAP) }.getOrNull() ?: return false
+        return salt.size == SALT_BYTES && hash.isNotEmpty()
+    }
+
     fun verify(password: String, stored: String): Boolean {
         val parts = stored.split(':', limit = 2)
         if (parts.size != 2) return false

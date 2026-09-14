@@ -3,7 +3,9 @@ package tomato.simple.notes.activities
 import android.content.Intent
 import android.os.Bundle
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.simplemobiletools.commons.dialogs.RadioGroupDialog
 import com.simplemobiletools.commons.extensions.beGone
 import com.simplemobiletools.commons.extensions.beVisible
@@ -22,10 +24,10 @@ import tomato.simple.notes.adapters.NotesListAdapter
 import tomato.simple.notes.adapters.SearchResultsAdapter
 import tomato.simple.notes.databinding.ActivityNotesListBinding
 import tomato.simple.notes.dialogs.NewNoteDialog
-import tomato.simple.notes.dialogs.UnlockNotebookPasswordDialog
 import tomato.simple.notes.extensions.config
 import tomato.simple.notes.extensions.notesDB
 import tomato.simple.notes.extensions.notebooksDB
+import tomato.simple.notes.extensions.unlockNotebookIfNeeded
 import tomato.simple.notes.helpers.NOTEBOOK_ID
 import tomato.simple.notes.helpers.NoteSearchHelper
 import tomato.simple.notes.helpers.NoteSearchResult
@@ -41,6 +43,7 @@ class NotesListActivity : SimpleActivity() {
     private val binding by viewBinding(ActivityNotesListBinding::inflate)
     private var adapter: NotesListAdapter? = null
     private var searchAdapter: SearchResultsAdapter? = null
+    private var itemTouchHelper: ItemTouchHelper? = null
     private var searchVisible = false
     private var filterNotebookId = 0L
     private var pendingNewNotePrompt = false
@@ -90,8 +93,38 @@ class NotesListActivity : SimpleActivity() {
         }
 
         binding.notesList.layoutManager = GridLayoutManager(this, config.notebookColumns)
-        adapter = NotesListAdapter(emptyList(), emptyMap(), showNotebookName = true) { openNote(it) }
+        adapter = NotesListAdapter(
+            mutableListOf(),
+            emptyMap(),
+            showNotebookName = true,
+            itemClick = { openNote(it) },
+            itemsReordered = { persistNoteOrder(it) }
+        )
         binding.notesList.adapter = adapter
+        itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN or ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT,
+            0
+        ) {
+            override fun isLongPressDragEnabled() = true
+
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                val fromPosition = viewHolder.bindingAdapterPosition
+                val toPosition = target.bindingAdapterPosition
+                return adapter?.onItemMove(fromPosition, toPosition) == true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
+
+            override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+                super.clearView(recyclerView, viewHolder)
+                adapter?.onDragFinished()
+            }
+        })
+        itemTouchHelper?.attachToRecyclerView(binding.notesList)
 
         searchAdapter = SearchResultsAdapter(emptyList()) { result ->
             openSearchResult(result)
@@ -141,6 +174,20 @@ class NotesListActivity : SimpleActivity() {
         updateTextColors(binding.notesListCoordinator)
     }
 
+    private fun persistNoteOrder(notes: List<Note>) {
+        ensureBackgroundThread {
+            val orders = notes.map { it.sortOrder }.sorted()
+            notes.forEachIndexed { index, item ->
+                val id = item.id ?: return@forEachIndexed
+                val newOrder = orders.getOrElse(index) { index + 1 }
+                if (item.sortOrder != newOrder) {
+                    item.sortOrder = newOrder
+                    notesDB.updateSortOrder(id, newOrder)
+                }
+            }
+        }
+    }
+
     private fun applyIntent(intent: Intent) {
         filterNotebookId = intent.getLongExtra(NOTEBOOK_ID, 0L)
         pendingNewNotePrompt = intent.getBooleanExtra(OPEN_NEW_NOTE_DIALOG, false)
@@ -177,8 +224,7 @@ class NotesListActivity : SimpleActivity() {
 
     private fun updateTitle() {
         binding.notesListToolbar.title = if (filterNotebookId > 0L) {
-            val name = notebooksById[filterNotebookId]?.title ?: getString(R.string.notebooks)
-            getString(R.string.notebook_screen_title, name)
+            notebooksById[filterNotebookId]?.title ?: getString(R.string.notebooks)
         } else {
             getString(R.string.app_launcher_name)
         }
@@ -188,11 +234,7 @@ class NotesListActivity : SimpleActivity() {
         val forcedNotebookId = filterNotebookId
         if (forcedNotebookId > 0L) {
             val notebook = notebooksById[forcedNotebookId]
-            if (notebook?.isLocked() == true) {
-                UnlockNotebookPasswordDialog(this, notebook.protectionHash) {
-                    showNewNoteDialog(forcedNotebookId)
-                }
-            } else {
+            unlockNotebookIfNeeded(notebook) {
                 showNewNoteDialog(forcedNotebookId)
             }
             return
@@ -209,11 +251,7 @@ class NotesListActivity : SimpleActivity() {
                         }
                         RadioGroupDialog(this, items, -1, R.string.select_target_notebook) {
                             val notebook = notebooks[it as Int]
-                            if (notebook.isLocked()) {
-                                UnlockNotebookPasswordDialog(this, notebook.protectionHash) {
-                                    showNewNoteDialog(notebook.id!!)
-                                }
-                            } else {
+                            unlockNotebookIfNeeded(notebook) {
                                 showNewNoteDialog(notebook.id!!)
                             }
                         }
@@ -240,11 +278,7 @@ class NotesListActivity : SimpleActivity() {
 
     private fun openNote(note: Note) {
         val notebook = notebooksById[note.notebookId]
-        if (notebook?.isLocked() == true) {
-            UnlockNotebookPasswordDialog(this, notebook.protectionHash) {
-                openNoteUnlocked(note)
-            }
-        } else {
+        unlockNotebookIfNeeded(notebook) {
             openNoteUnlocked(note)
         }
     }
@@ -260,11 +294,7 @@ class NotesListActivity : SimpleActivity() {
     }
 
     private fun openNotebook(notebook: Notebook) {
-        if (notebook.isLocked()) {
-            UnlockNotebookPasswordDialog(this, notebook.protectionHash) {
-                openNotebookUnlocked(notebook)
-            }
-        } else {
+        unlockNotebookIfNeeded(notebook) {
             openNotebookUnlocked(notebook)
         }
     }

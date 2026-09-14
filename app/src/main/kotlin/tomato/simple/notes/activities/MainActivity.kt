@@ -137,16 +137,6 @@ class MainActivity : SimpleActivity() {
         setupSearchButtons()
     }
 
-    private fun switchToNotebooks() {
-        if (isSearchActive) {
-            closeSearch()
-        }
-        hideKeyboard()
-        config.showNotebooks = true
-        startActivity(Intent(this, NotebooksActivity::class.java))
-        finish()
-    }
-
     override fun onResume() {
         super.onResume()
         setupPrimaryToolbar(binding.mainToolbar, if (isTaskRoot) NavigationIcon.None else NavigationIcon.Arrow)
@@ -213,11 +203,9 @@ class MainActivity : SimpleActivity() {
                 icon?.alpha = if (isEnabled) 255 else 127
             }
 
-            findItem(R.id.rename_note).isVisible = multipleNotesExist
+            findItem(R.id.rename_note).isVisible = mNotes.isNotEmpty()
             findItem(R.id.open_note).isVisible = multipleNotesExist
             findItem(R.id.delete_note).isVisible = mNotes.isNotEmpty()
-            findItem(R.id.pin_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && !mCurrentNote.isPinned())
-            findItem(R.id.unpin_note).isVisible = mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && mCurrentNote.isPinned())
             findItem(R.id.open_search).isVisible =
                 !isCurrentItemChecklist && !isCurrentItemCounter && (getCurrentFragment() as? TextFragment)?.isMarkdownPreview() != true
             findItem(R.id.remove_done_items).isVisible = isCurrentItemChecklist && mNotes.isNotEmpty() && (::mCurrentNote.isInitialized && !mCurrentNote.isReadOnly)
@@ -237,7 +225,10 @@ class MainActivity : SimpleActivity() {
             findItem(R.id.edit_tags).isVisible = mNotes.isNotEmpty() && ::mCurrentNote.isInitialized
             findItem(R.id.new_note).isVisible = true
             findItem(R.id.move_note).isVisible = mNotes.isNotEmpty()
-            findItem(R.id.switch_to_notebooks).isVisible = false
+            findItem(R.id.share).isVisible = mNotes.isNotEmpty()
+            findItem(R.id.export_as_file).isVisible = mNotes.isNotEmpty()
+            findItem(R.id.print).isVisible = mNotes.isNotEmpty()
+            findItem(R.id.cab_create_shortcut).isVisible = mNotes.isNotEmpty()
 
             saveNoteButton = findItem(R.id.save_note)
             saveNoteButton!!.isVisible =
@@ -259,14 +250,12 @@ class MainActivity : SimpleActivity() {
             val fragment = getCurrentFragment()
             when (menuItem.itemId) {
                 R.id.open_search -> fragment?.handleUnlocking { openSearch() }
-                R.id.switch_to_notebooks -> switchToNotebooks()
                 R.id.open_note -> displayOpenNoteDialog()
                 R.id.save_note -> fragment?.handleUnlocking { saveNote() }
                 R.id.undo -> undo()
                 R.id.redo -> redo()
                 R.id.new_note -> displayNewNoteDialog()
                 R.id.rename_note -> fragment?.handleUnlocking { displayRenameDialog() }
-                R.id.pin_note, R.id.unpin_note -> fragment?.handleUnlocking { togglePinnedNote() }
                 R.id.markdown_preview -> fragment?.handleUnlocking { toggleMarkdownPreview() }
                 R.id.edit_tags -> fragment?.handleUnlocking { displayTagsDialog() }
                 R.id.share -> fragment?.handleUnlocking { shareText() }
@@ -280,8 +269,6 @@ class MainActivity : SimpleActivity() {
                 R.id.print -> fragment?.handleUnlocking { printText() }
                 R.id.move_note -> fragment?.handleUnlocking { moveNoteToNotebook() }
                 R.id.delete_note -> fragment?.handleUnlocking { displayDeleteNotePrompt() }
-                R.id.settings -> launchSettings()
-                R.id.about -> launchAbout()
                 R.id.remove_done_items -> fragment?.handleUnlocking { removeDoneItems() }
                 R.id.uncheck_all_items -> fragment?.handleUnlocking { uncheckAllItems() }
                 R.id.sort_checklist -> fragment?.handleUnlocking { displaySortChecklistDialog() }
@@ -802,11 +789,6 @@ class MainActivity : SimpleActivity() {
                 }
             }
         }
-    }
-
-    private fun launchSettings() {
-        hideKeyboard()
-        startActivity(Intent(this, SettingsActivity::class.java))
     }
 
     private fun tryOpenFile() {
@@ -1493,25 +1475,6 @@ class MainActivity : SimpleActivity() {
         tomato.simple.notes.dialogs.EditTagsDialog(this, mCurrentNote) { updated ->
             mCurrentNote.tags = updated.tags
             mNotes.firstOrNull { it.id == updated.id }?.tags = updated.tags
-        }
-    }
-
-    private fun togglePinnedNote() {
-        if (!::mCurrentNote.isInitialized) {
-            return
-        }
-
-        val noteId = mCurrentNote.id ?: return
-        val newPinned = if (mCurrentNote.isPinned()) 0 else 1
-        ensureBackgroundThread {
-            notesDB.updatePinned(noteId, newPinned)
-            runOnUiThread {
-                NotesHelper(this).getNotesInNotebook(currentNotebookId) {
-                    mNotes = it
-                    initViewPager(noteId)
-                    refreshMenuItems()
-                }
-            }
         }
     }
 

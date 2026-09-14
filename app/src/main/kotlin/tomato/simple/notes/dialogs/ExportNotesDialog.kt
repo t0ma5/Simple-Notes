@@ -6,10 +6,11 @@ import tomato.simple.notes.R
 import tomato.simple.notes.activities.SimpleActivity
 import tomato.simple.notes.databinding.DialogExportNotesBinding
 
-class ExportNotesDialog(val activity: SimpleActivity, callback: (filename: String) -> Unit) {
+class ExportNotesDialog(val activity: SimpleActivity, callback: (filename: String, encrypt: Boolean) -> Unit) {
 
     init {
         val binding = DialogExportNotesBinding.inflate(activity.layoutInflater).apply {
+            val textColor = activity.getProperTextColor()
             exportNotesFilename.setText(
                 buildString {
                     append(root.context.getString(com.simplemobiletools.commons.R.string.notes))
@@ -17,6 +18,8 @@ class ExportNotesDialog(val activity: SimpleActivity, callback: (filename: Strin
                     append(root.context.getCurrentFormattedDateTime())
                 }
             )
+            exportPlain.setTextColor(textColor)
+            exportEncrypted.setTextColor(textColor)
         }
 
         activity.getAlertDialogBuilder().setPositiveButton(com.simplemobiletools.commons.R.string.ok, null).setNegativeButton(com.simplemobiletools.commons.R.string.cancel, null).apply {
@@ -27,7 +30,7 @@ class ExportNotesDialog(val activity: SimpleActivity, callback: (filename: Strin
                     when {
                         filename.isEmpty() -> activity.toast(com.simplemobiletools.commons.R.string.empty_name)
                         filename.isAValidFilename() -> {
-                            callback(filename)
+                            callback(filename, binding.exportEncrypted.isChecked)
                             alertDialog.dismiss()
                         }
 

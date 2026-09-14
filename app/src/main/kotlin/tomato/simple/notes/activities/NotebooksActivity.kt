@@ -3,11 +3,13 @@ package tomato.simple.notes.activities
 import android.content.Intent
 import android.os.Bundle
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.simplemobiletools.commons.dialogs.ConfirmationDialog
+import com.simplemobiletools.commons.dialogs.SecurityDialog
 import com.simplemobiletools.commons.extensions.*
+import com.simplemobiletools.commons.helpers.SHOW_ALL_TABS
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.PROTECTION_NONE
 import tomato.simple.notes.R
@@ -15,12 +17,12 @@ import tomato.simple.notes.adapters.NotebooksAdapter
 import tomato.simple.notes.adapters.SearchResultsAdapter
 import tomato.simple.notes.databinding.ActivityNotebooksBinding
 import tomato.simple.notes.dialogs.NewNotebookDialog
+import tomato.simple.notes.dialogs.NotebookActionsDialog
 import tomato.simple.notes.dialogs.RenameNotebookDialog
-import tomato.simple.notes.dialogs.SetNotebookPasswordDialog
-import tomato.simple.notes.dialogs.UnlockNotebookPasswordDialog
 import tomato.simple.notes.extensions.config
 import tomato.simple.notes.extensions.notesDB
 import tomato.simple.notes.extensions.notebooksDB
+import tomato.simple.notes.extensions.unlockNotebookIfNeeded
 import tomato.simple.notes.helpers.OPEN_NEW_NOTE_DIALOG
 import tomato.simple.notes.helpers.NOTEBOOK_ID
 import tomato.simple.notes.helpers.NoteSearchHelper
@@ -162,11 +164,7 @@ class NotebooksActivity : SimpleActivity() {
     }
 
     private fun openNotebook(notebook: Notebook) {
-        if (notebook.isLocked()) {
-            UnlockNotebookPasswordDialog(this, notebook.protectionHash) {
-                openNotebookUnlocked(notebook)
-            }
-        } else {
+        unlockNotebookIfNeeded(notebook) {
             openNotebookUnlocked(notebook)
         }
     }
@@ -191,29 +189,24 @@ class NotebooksActivity : SimpleActivity() {
     }
 
     private fun showNotebookActions(notebook: Notebook) {
-        val options = mutableListOf<String>().apply {
-            add(getString(R.string.rename_notebook))
-            add(if (notebook.isPinned()) getString(R.string.unpin_notebook) else getString(R.string.pin_notebook))
-            add(if (notebook.isLocked()) getString(R.string.unlock_notebook) else getString(R.string.lock_notebook))
-            add(getString(R.string.delete_notebook))
-        }.toTypedArray()
-
-        AlertDialog.Builder(this)
-            .setItems(options) { _, which ->
-                when (options[which]) {
-                    getString(R.string.rename_notebook) -> {
-                        RenameNotebookDialog(this, notebook) {
-                            refreshNotebooks()
-                        }
-                    }
-                    getString(R.string.pin_notebook),
-                    getString(R.string.unpin_notebook) -> togglePinned(notebook)
-                    getString(R.string.lock_notebook) -> lockNotebook(notebook)
-                    getString(R.string.unlock_notebook) -> unlockNotebook(notebook)
-                    getString(R.string.delete_notebook) -> deleteNotebook(notebook)
+        NotebookActionsDialog(
+            activity = this,
+            notebook = notebook,
+            onRename = {
+                RenameNotebookDialog(this, notebook) {
+                    refreshNotebooks()
                 }
-            }
-            .show()
+            },
+            onPin = { togglePinned(notebook) },
+            onLock = {
+                if (notebook.isLocked()) {
+                    unlockNotebook(notebook)
+                } else {
+                    lockNotebook(notebook)
+                }
+            },
+            onDelete = { deleteNotebook(notebook) }
+        )
     }
 
     private fun togglePinned(notebook: Notebook) {
@@ -284,25 +277,27 @@ class NotebooksActivity : SimpleActivity() {
     }
 
     private fun lockNotebook(notebook: Notebook) {
-        com.simplemobiletools.commons.dialogs.ConfirmationDialog(
+        ConfirmationDialog(
             this,
             "",
             R.string.locking_warning,
             com.simplemobiletools.commons.R.string.ok,
             com.simplemobiletools.commons.R.string.cancel
         ) {
-            SetNotebookPasswordDialog(this) { hash ->
-                notebook.protectionHash = hash
-                notebook.protectionType = 1
-                NotebooksHelper(this).insertOrUpdateNotebook(notebook) {
-                    refreshNotebooks()
+            SecurityDialog(this, "", SHOW_ALL_TABS) { hash, type, success ->
+                if (success) {
+                    notebook.protectionHash = hash
+                    notebook.protectionType = type
+                    NotebooksHelper(this).insertOrUpdateNotebook(notebook) {
+                        refreshNotebooks()
+                    }
                 }
             }
         }
     }
 
     private fun unlockNotebook(notebook: Notebook) {
-        UnlockNotebookPasswordDialog(this, notebook.protectionHash) {
+        unlockNotebookIfNeeded(notebook) {
             removeProtection(notebook)
         }
     }
@@ -395,11 +390,7 @@ class NotebooksActivity : SimpleActivity() {
             if (notebook == null) {
                 return@getNotebookWithId
             }
-            if (notebook.isLocked()) {
-                UnlockNotebookPasswordDialog(this, notebook.protectionHash) {
-                    openNote(note)
-                }
-            } else {
+            unlockNotebookIfNeeded(notebook) {
                 openNote(note)
             }
         }

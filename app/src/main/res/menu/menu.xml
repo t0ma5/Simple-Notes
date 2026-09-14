@@ -12,11 +12,6 @@
         android:title="@string/search"
         app:showAsAction="always" />
     <item
-        android:id="@+id/switch_to_notebooks"
-        android:icon="@drawable/ic_notebooks_vector"
-        android:title="@string/switch_to_notebooks"
-        app:showAsAction="always" />
-    <item
         android:id="@+id/open_note"
         android:icon="@drawable/ic_folder_open_vector"
         android:title="@string/open_note"
@@ -37,25 +32,60 @@
         android:title="@string/redo"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/rename_note"
-        android:icon="@drawable/ic_rename_vector"
-        android:title="@string/rename_note"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/pin_note"
-        android:title="@string/pin_note"
+        android:id="@+id/share"
+        android:title="@string/share"
         app:showAsAction="never" />
     <item
-        android:id="@+id/unpin_note"
-        android:title="@string/unpin_note"
+        android:id="@+id/edit_tags"
+        android:title="@string/tags"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/move_note"
+        android:title="@string/move"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/delete_note"
+        android:title="@string/delete"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/rename_note"
+        android:title="@string/rename"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/open_file"
+        android:title="@string/open_file"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/export_as_file"
+        android:title="@string/export_txt"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/lock_note"
+        android:title="@string/lock"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/unlock_note"
+        android:title="@string/unlock"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/make_read_only"
+        android:title="@string/make_read_only"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/allow_editing"
+        android:title="@string/allow_editing"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/cab_create_shortcut"
+        android:title="@string/create_shortcut"
         app:showAsAction="never" />
     <item
         android:id="@+id/markdown_preview"
         android:title="@string/markdown_preview"
         app:showAsAction="never" />
     <item
-        android:id="@+id/edit_tags"
-        android:title="@string/tags"
+        android:id="@+id/print"
+        android:title="@string/print"
         app:showAsAction="never" />
     <item
         android:id="@+id/remove_done_items"
@@ -67,68 +97,10 @@
         app:showAsAction="never" />
     <item
         android:id="@+id/sort_checklist"
-        android:icon="@drawable/ic_sort_vector"
         android:title="@string/sort_by"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/share"
-        android:icon="@drawable/ic_share_vector"
-        android:title="@string/share"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/cab_create_shortcut"
-        android:title="@string/create_shortcut"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/lock_note"
-        android:title="@string/lock_note"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/unlock_note"
-        android:title="@string/unlock_note"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/make_read_only"
-        android:title="@string/make_read_only"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/allow_editing"
-        android:title="@string/allow_editing"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/open_file"
-        android:title="@string/open_file"
         app:showAsAction="never" />
     <item
         android:id="@+id/import_folder"
         android:title="@string/import_folder"
         app:showAsAction="never" />
-    <item
-        android:id="@+id/export_as_file"
-        android:title="@string/export_as_file"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/print"
-        android:title="@string/print"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/move_note"
-        android:icon="@drawable/ic_move_note_vector"
-        android:title="@string/move_entire_note"
-        app:showAsAction="always" />
-    <item
-        android:id="@+id/delete_note"
-        android:icon="@drawable/ic_delete_vector"
-        android:title="@string/delete_note"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/settings"
-        android:icon="@drawable/ic_settings_cog_vector"
-        android:title="@string/settings"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/about"
-        android:icon="@drawable/ic_info_vector"
-        android:title="@string/about"
-        app:showAsAction="ifRoom" />
 </menu>

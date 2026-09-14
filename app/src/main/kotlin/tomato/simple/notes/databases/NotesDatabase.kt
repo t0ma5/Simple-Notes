@@ -17,7 +17,7 @@ import tomato.simple.notes.models.Note
 import tomato.simple.notes.models.Widget
 import java.util.concurrent.Executors
 
-@Database(entities = [Note::class, Notebook::class, Widget::class], version = 9, exportSchema = true)
+@Database(entities = [Note::class, Notebook::class, Widget::class], version = 10, exportSchema = true)
 abstract class NotesDatabase : RoomDatabase() {
 
     abstract fun NotebooksDao(): NotebooksDao
@@ -50,6 +50,7 @@ abstract class NotesDatabase : RoomDatabase() {
                             .addMigrations(MIGRATION_6_7)
                             .addMigrations(MIGRATION_7_8)
                             .addMigrations(MIGRATION_8_9)
+                            .addMigrations(MIGRATION_9_10)
                             .build()
                         db!!.openHelper.setWriteAheadLoggingEnabled(true)
                     }
@@ -151,6 +152,15 @@ abstract class NotesDatabase : RoomDatabase() {
                 if (!tableHasColumn(database, tableName = "notes", columnName = "is_read_only")) {
                     database.execSQL("ALTER TABLE notes ADD COLUMN is_read_only INTEGER NOT NULL DEFAULT 0")
                 }
+            }
+        }
+
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                if (!tableHasColumn(database, tableName = "notes", columnName = "sort_order")) {
+                    database.execSQL("ALTER TABLE notes ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0")
+                }
+                database.execSQL("UPDATE notes SET sort_order = id WHERE sort_order = 0")
             }
         }
 

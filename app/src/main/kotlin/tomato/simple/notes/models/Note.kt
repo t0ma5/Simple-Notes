@@ -30,7 +30,8 @@ data class Note(
     @ColumnInfo(name = "pinned", defaultValue = "0") var pinned: Int = 0,
     @ColumnInfo(name = "deleted_ts", defaultValue = "0") var deletedTs: Long = 0L,
     @ColumnInfo(name = "tags", defaultValue = "") var tags: String = "",
-    @ColumnInfo(name = "is_read_only", defaultValue = "0") var isReadOnly: Boolean = false
+    @ColumnInfo(name = "is_read_only", defaultValue = "0") var isReadOnly: Boolean = false,
+    @ColumnInfo(name = "sort_order", defaultValue = "0") var sortOrder: Int = 0
 ) {
     @Ignore
     var notebookTitle: String? = null
