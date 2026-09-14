@@ -40,7 +40,7 @@ class NotesListAdapter(
         val text = context.getProperTextColor()
         val muted = context.getMutedTextColor()
         holder.binding.apply {
-            root.applyNoteCardBackground()
+            noteCardBody.applyNoteCardBackground()
             noteCardTitle.text = note.title
             noteCardTitle.setTextColor(text)
             val previewLines = note.previewLines(context)
