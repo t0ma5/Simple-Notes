@@ -11,7 +11,7 @@ import com.simplemobiletools.commons.extensions.getProperTextColor
 import tomato.simple.notes.databinding.ItemNoteCardBinding
 import tomato.simple.notes.extensions.applyNoteCardBackground
 import tomato.simple.notes.extensions.getMutedTextColor
-import tomato.simple.notes.helpers.previewText
+import tomato.simple.notes.helpers.previewLines
 import tomato.simple.notes.models.Note
 import tomato.simple.notes.models.Notebook
 import java.util.Collections
@@ -41,10 +41,15 @@ class NotesListAdapter(
             root.applyNoteCardBackground()
             noteCardTitle.text = note.title
             noteCardTitle.setTextColor(text)
-            val preview = note.previewText(context)
-            noteCardPreview.text = preview
-            noteCardPreview.setTextColor(text)
-            noteCardPreview.beGoneIf(preview.isNullOrBlank() || note.isLocked())
+            val previewLines = note.previewLines(context)
+            val previewViews = listOf(noteCardPreview1, noteCardPreview2, noteCardPreview3, noteCardPreview4)
+            noteCardPreviewHolder.beGoneIf(previewLines.isEmpty() || note.isLocked())
+            previewViews.forEachIndexed { index, view ->
+                val line = previewLines.getOrNull(index)
+                view.beGoneIf(line.isNullOrBlank())
+                view.text = line
+                view.setTextColor(text)
+            }
             noteCardLock.beVisibleIf(note.isLocked())
             if (note.isLocked()) {
                 noteCardLock.setImageDrawable(

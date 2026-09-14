@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_margin="@dimen/medium_margin"
     android:background="@drawable/note_card_background"
-    android:minHeight="132dp"
+    android:minHeight="156dp"
     android:padding="@dimen/normal_margin">
 
     <com.simplemobiletools.commons.views.MyTextView
@@ -21,39 +21,80 @@
         android:textStyle="bold"
         tools:text="Shopping" />
 
-    <ImageView
-        android:id="@+id/note_card_lock"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_below="@+id/note_card_title"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="@dimen/small_margin"
-        android:importantForAccessibility="no"
-        android:src="@drawable/ic_lock_vector"
-        android:visibility="gone" />
-
-    <com.simplemobiletools.commons.views.MyTextView
-        android:id="@+id/note_card_preview"
+    <LinearLayout
+        android:id="@+id/note_card_preview_holder"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/note_card_notebook"
+        android:layout_above="@+id/note_card_footer"
         android:layout_below="@+id/note_card_title"
         android:layout_alignParentStart="true"
         android:layout_marginTop="@dimen/small_margin"
-        android:ellipsize="end"
-        android:maxLines="3"
-        android:minHeight="48dp"
-        tools:text="Milk, eggs, bread" />
+        android:orientation="vertical">
 
-    <com.simplemobiletools.commons.views.MyTextView
-        android:id="@+id/note_card_notebook"
-        android:layout_width="wrap_content"
+        <com.simplemobiletools.commons.views.MyTextView
+            android:id="@+id/note_card_preview_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:singleLine="true"
+            tools:text="notebooks reorder and..." />
+
+        <com.simplemobiletools.commons.views.MyTextView
+            android:id="@+id/note_card_preview_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:singleLine="true"
+            tools:text="notebooks reorder and..." />
+
+        <com.simplemobiletools.commons.views.MyTextView
+            android:id="@+id/note_card_preview_3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:singleLine="true"
+            tools:text="notebooks reorder and..." />
+
+        <com.simplemobiletools.commons.views.MyTextView
+            android:id="@+id/note_card_preview_4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:singleLine="true"
+            tools:text="notebooks reorder and..." />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/note_card_footer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textSize="@dimen/smaller_text_size"
-        tools:text="Work" />
+        android:layout_alignParentBottom="true">
+
+        <ImageView
+            android:id="@+id/note_card_lock"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_lock_vector"
+            android:visibility="gone" />
+
+        <com.simplemobiletools.commons.views.MyTextView
+            android:id="@+id/note_card_notebook"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true"
+            android:layout_toStartOf="@id/note_card_lock"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="@dimen/smaller_text_size"
+            tools:text="Work" />
+    </RelativeLayout>
 
 </RelativeLayout>
