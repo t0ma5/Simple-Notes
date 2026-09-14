@@ -25,26 +25,28 @@ APKs are published on [GitHub Releases](https://github.com/t0ma5/Simple-Notes/re
 
 ## New features in this fork
 
-- **Notebooks** → Create, rename, delete, pin, reorder and lock collections of notes. Count is left, `:::` is right, on the bottom row of each card. Tapping `:::` opens the same menu as a long-press.
-- **Notebooks/Notes View** - Toolbar icon to the right of search switches notebooks vs a two-column notes card grid (notes is the default after install).
-- **Read-only notes** → Overflow Make read-only / Allow editing. Blocks typing, checklist checks, and counter buttons. Survives app restart.
-- **Lock Notes** → Lock a text note, checklist or counter note with Fingerprint, Pattern or Pin #. Hides preview until unlock; lock icon sits in the lower-right of the card.
-- **Encrypted exports** → Use a password to encrypt exports using AES. Can also export in plain text with no password.
-- **Search** notes and notebooks from the notebooks screen.
-- **Drag & Drop** notebooks with `:::`. Long-press a note card to reorder. Note cards show 4 preview lines; each source line stays on one row and ellipsizes instead of wrapping.
-- **Recycle bin** for deleted notes and notebooks.
-- **Markdown** preview for text notes.
-- Pasting formatted paste becomes **plain text**. Composing keyboards still work.
-- **Tags** on notes, searchable from the notebooks screen.
-- **Undo & redo** for text, checklist, and counter edits.
-- Uncheck all checklist items, collapse checked items, and sort each checklist independently. The add-item dialog stays open if you tap outside it.
-- **Counter Notes** with colored increment/decrement buttons.
-- **Move** notes, checklist items or counters between notebooks.
-- **Widgets Settings** → Customize widget colors on updates every Notes widget, not only the first one.
-- **Delete** the last remaining note.
-- No donation, rate, or “what's new” popups.
-- Android 16 → compileSdk and **targetSdk 36**.
-- **applicationId** and Kotlin packages are `tomato.simple.notes`, so app can install even with Simple Notes Pro present for testing/comparing.
+The Simple Notes Pro workflow, plus notebooks, locks, and a recycle bin. Still offline, still GPL-3.0.
+
+**Organize**
+- **Notebooks** — Create, rename, pin, reorder, lock, and delete collections of notes. A toolbar icon switches a two-column notes grid and the notebooks screen (notes is the default).
+- **Search and tags** — Find notes, notebooks, and tags from one screen. Move a note to another notebook, or send selected checklist items to a different note.
+- **Recycle bin** — Restore deleted notes and notebooks.
+
+**Private**
+- **Lock** a note or a whole notebook with fingerprint, pattern, or PIN. Locked cards hide their preview until you unlock.
+- **Read-only** — Freeze a text note, checklist, or counter so it cannot be edited by accident.
+- **Encrypted exports** — AES with a password, or plain text with none.
+
+**Write**
+- Text notes with Markdown preview, checklists, and counter notes with colored +/− buttons.
+- Undo and redo. Paste as plain text; composing keyboards still work.
+- Checklists: uncheck all, collapse checked items, sort each list on its own.
+
+**Home screen**
+- Notes widgets and a notebook widget. Customize widget colors once; every widget updates.
+
+**No nags**
+- No donation, rate, or “what’s new” popups. Own app ID (`tomato.simple.notes`) so it can sit next to Simple Notes Pro.
 
 ## Build
 
