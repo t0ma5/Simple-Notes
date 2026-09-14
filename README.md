@@ -25,23 +25,24 @@ APKs are published on [GitHub Releases](https://github.com/t0ma5/Simple-Notes/re
 
 ## New features ahead of upstream 6.17.0
 
-- **Notebooks**: create, rename, delete, pin, reorder, and password-protect collections of notes. Toolbar icon to the right of search switches notebooks vs a two-column notes card grid (notes is the default after install). Notebook cards show a centered icon and note count; tapping the handle opens the same menu as a long-press.
+- **Notebooks** → Create, rename, delete, pin, reorder (drag & drop), and password-protect collections of notes.
+- **Notebooks/Notes View** - Toolbar icon to the right of search switches notebooks vs a two-column notes card grid (notes is the default after install).
 - **Search** notes and notebooks from the notebooks screen.
 - **Pin** individual notes.
 - **Recycle bin** for deleted notes and notebooks.
 - **Markdown** preview for text notes.
 - Pasting formatted paste becomes **plain text**. Composing keyboards still work.
-- **Read-only notes** — Overflow Make read-only / Allow editing. Blocks typing, checklist checks, and counter buttons. Survives app restart.
+- **Read-only notes** → Overflow Make read-only / Allow editing. Blocks typing, checklist checks, and counter buttons. Survives app restart.
+- **Read-only** notes: lock a text note, checklist, or counter against accidental edits.
 - **Tags** on notes, searchable from the notebooks screen.
 - Home-screen note and notebook widgets, including transparent background.
-- **Undo and redo** for text, checklist, and counter edits.
-- **Read-only** notes: lock a text note, checklist, or counter against accidental edits.
+- **Undo & redo** for text, checklist, and counter edits.
 - Uncheck all checklist items, collapse checked items, and sort each checklist independently. The add-item dialog stays open if you tap outside it.
 - **Widgets Settings** → Customize widget colors updates every Notes widget, not only the first one.
-- Delete the last remaining note.
-- Counter notes with colored increment/decrement buttons.
+- **Counter Notes** with colored increment/decrement buttons.
 - **Move** checklist items or whole notes between notebooks.
-- Optional **encrypted** exports.
+- Delete the last remaining note.
+- **Encrypted exports**.
 - No donation, rate, or “what's new” popups.
 - Android 16 → compileSdk and **targetSdk 36**.
 - **applicationId** and Kotlin packages are `tomato.simple.notes`, so it can sit next to Simple Notes Pro for testing.
