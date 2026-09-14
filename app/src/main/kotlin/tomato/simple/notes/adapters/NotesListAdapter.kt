@@ -1,7 +1,9 @@
 package tomato.simple.notes.adapters
 
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.simplemobiletools.commons.extensions.beGoneIf
 import com.simplemobiletools.commons.extensions.beVisibleIf
@@ -47,8 +49,7 @@ class NotesListAdapter(
             previewViews.forEachIndexed { index, view ->
                 val line = previewLines.getOrNull(index)
                 view.beGoneIf(line.isNullOrBlank())
-                view.text = line
-                view.setTextColor(text)
+                bindPreviewLine(view, line, text)
             }
             noteCardLock.beVisibleIf(note.isLocked())
             if (note.isLocked()) {
@@ -65,6 +66,15 @@ class NotesListAdapter(
     }
 
     override fun getItemCount() = notes.size
+
+    private fun bindPreviewLine(view: TextView, line: String?, textColor: Int) {
+        view.setLines(1)
+        view.maxLines = 1
+        view.setHorizontallyScrolling(true)
+        view.ellipsize = TextUtils.TruncateAt.END
+        view.text = line
+        view.setTextColor(textColor)
+    }
 
     fun updateItems(newNotes: List<Note>, newNotebooks: Map<Long, Notebook>, showNotebook: Boolean) {
         notes = newNotes.toMutableList()
