@@ -13,6 +13,8 @@ class Config(context: Context) : BaseConfig(context) {
 
         private const val DARK_RED_THEME_REVISION = 2
         private const val DARK_RED_THEME_REVISION_KEY = "dark_red_theme_revision"
+        private const val WIDGET_COLOR_REVISION = 1
+        private const val WIDGET_COLOR_REVISION_KEY = "widget_color_revision"
     }
 
     var autosaveNotes: Boolean
@@ -52,6 +54,21 @@ class Config(context: Context) : BaseConfig(context) {
         primaryColor = red
         accentColor = red
         prefs.edit().putInt(DARK_RED_THEME_REVISION_KEY, DARK_RED_THEME_REVISION).apply()
+    }
+
+    fun applyDefaultWidgetColorsIfNeeded() {
+        if (prefs.getInt(WIDGET_COLOR_REVISION_KEY, 0) >= WIDGET_COLOR_REVISION) {
+            return
+        }
+        val oldBg = Color.parseColor("#AA000000")
+        val oldText = Color.parseColor("#FFD32F2F")
+        if (widgetBgColor == oldBg) {
+            widgetBgColor = Color.parseColor("#00121212")
+        }
+        if (widgetTextColor == oldText) {
+            widgetTextColor = Color.WHITE
+        }
+        prefs.edit().putInt(WIDGET_COLOR_REVISION_KEY, WIDGET_COLOR_REVISION).apply()
     }
 
     var showNotePicker: Boolean

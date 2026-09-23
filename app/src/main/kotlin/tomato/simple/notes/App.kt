@@ -9,5 +9,6 @@ class App : Application() {
         super.onCreate()
         checkUseEnglish()
         config.applyDefaultDarkRedThemeIfNeeded()
+        config.applyDefaultWidgetColorsIfNeeded()
     }
 }
